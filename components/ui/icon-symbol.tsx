@@ -1,7 +1,7 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
+import { SymbolViewProps, SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
@@ -14,18 +14,47 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
+  // navigation
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
+  'chevron.down': 'keyboard-arrow-down',
+  'xmark': 'close',
+
+  // tabs
   'calendar.fill': 'event',
-  'dollarsign.circle.fill': 'attach_money',
-} as IconMapping;
+  'dollarsign.circle.fill': 'account-balance-wallet',
+  'list.bullet': 'format-list-bulleted',
+
+  // actions
+  'plus': 'add',
+  'square.and.pencil': 'edit',
+  'trash': 'delete',
+
+  // search
+  'magnifyingglass': 'search',
+
+  // insights / misc
+  'lightbulb.fill': 'lightbulb',
+  'note.text': 'description',
+  'clock.fill': 'schedule',
+
+  // categorias de gasto
+  'fork.knife': 'restaurant',
+  'car.fill': 'directions-car',
+  'doc.text.fill': 'receipt',
+  'sparkles': 'auto-awesome',
+
+  // categorias de ganho
+  'briefcase.fill': 'work',
+  'laptopcomputer': 'laptop',
+  'gift.fill': 'card-giftcard',
+} as unknown as IconMapping;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
- * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
  */
 export function IconSymbol({
   name,
