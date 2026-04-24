@@ -20,7 +20,9 @@ export interface Expense {
   created_at?: string;
 }
 
-export type ListItem = (Income | Expense) & { type: FinanceType };
+export type ListItem =
+  | (Income  & { type: 'income' })
+  | (Expense & { type: 'expense' });
 
 export type Period = 'today' | 'week' | 'month';
 

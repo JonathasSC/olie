@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { shadowMd } from '@/constants/design';
-import { FINANCE_COLORS } from '../constants';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Colors, Fonts, Radius } from '@/constants/design';
 import { FinanceSummary } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
@@ -10,27 +10,35 @@ interface SummaryCardProps {
 }
 
 export function SummaryCard({ summary }: SummaryCardProps) {
-  const isPositive = summary.balance >= 0;
+  const { balance, totalIncomes, totalExpenses } = summary;
+  const savingsRate = totalIncomes > 0 ? Math.round(((totalIncomes - totalExpenses) / totalIncomes) * 100) : 0;
 
   return (
-    <View style={s.balanceCard}>
-      <Text style={s.balanceLabel}>Period Balance</Text>
-      <Text style={[s.balanceAmount, { color: isPositive ? '#E9D5FF' : '#FCA5A5' }]}>
-        {formatCurrency(summary.balance)}
-      </Text>
-      <View style={s.balanceDetails}>
-        <View style={s.balanceDetailItem}>
-          <Text style={s.balanceDetailLabel}>↑ INCOME</Text>
-          <Text style={[s.balanceDetailAmount, { color: FINANCE_COLORS.income }]}>
-            {formatCurrency(summary.totalIncome)}
-          </Text>
+    <View style={s.card}>
+      <View style={s.glow} />
+      <Text style={s.lbl}>Saldo atual</Text>
+      <Text style={s.amount}>{formatCurrency(balance)}</Text>
+      <View style={s.statsRow}>
+        <View style={s.statBlock}>
+          <Text style={[s.statVal, { color: Colors.income }]}>{formatCurrency(totalIncomes)}</Text>
+          <View style={s.statLbl}>
+            <IconSymbol name="arrow.up" size={12} color={Colors.income} />
+            <Text style={s.statLblTxt}>Receitas</Text>
+          </View>
         </View>
-        <View style={s.balanceDetailDiv} />
-        <View style={s.balanceDetailItem}>
-          <Text style={s.balanceDetailLabel}>↓ EXPENSES</Text>
-          <Text style={[s.balanceDetailAmount, { color: FINANCE_COLORS.expense }]}>
-            {formatCurrency(summary.totalExpenses)}
-          </Text>
+        <View style={s.statBlock}>
+          <Text style={[s.statVal, { color: Colors.expense }]}>{formatCurrency(totalExpenses)}</Text>
+          <View style={s.statLbl}>
+            <IconSymbol name="arrow.down" size={12} color={Colors.expense} />
+            <Text style={s.statLblTxt}>Despesas</Text>
+          </View>
+        </View>
+        <View style={s.statBlock}>
+          <Text style={[s.statVal, { color: Colors.brandLt }]}>{savingsRate}%</Text>
+          <View style={s.statLbl}>
+            <IconSymbol name="banknote.fill" size={12} color={Colors.brandLt} />
+            <Text style={s.statLblTxt}>Poupança</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -38,20 +46,28 @@ export function SummaryCard({ summary }: SummaryCardProps) {
 }
 
 const s = StyleSheet.create({
-  balanceCard: {
-    backgroundColor: FINANCE_COLORS.accent,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 6,
-    marginBottom: 16,
-    ...shadowMd,
-    shadowColor: FINANCE_COLORS.accentDark,
+  card: {
+    backgroundColor: Colors.bgCard,
+    borderRadius: Radius.lg,
+    padding: 22,
+    borderWidth: 1, borderColor: 'rgba(124,111,255,0.22)',
+    marginBottom: 14,
+    overflow: 'hidden',
   },
-  balanceLabel: { fontSize: 11, color: 'rgba(255,255,255,0.55)', fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' },
-  balanceAmount: { fontSize: 38, fontWeight: '800', letterSpacing: -1.5, marginTop: 2 },
-  balanceDetails: { flexDirection: 'row', marginTop: 16, alignItems: 'center' },
-  balanceDetailItem: { flex: 1 },
-  balanceDetailDiv: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 16 },
-  balanceDetailLabel: { fontSize: 11, color: 'rgba(255,255,255,0.55)', fontWeight: '500', letterSpacing: 0.3 },
-  balanceDetailAmount: { fontSize: 16, fontWeight: '700', marginTop: 3 },
+  glow: {
+    position: 'absolute', top: -60, right: -60,
+    width: 180, height: 180, borderRadius: 90,
+    backgroundColor: 'rgba(124,111,255,0.10)',
+  },
+  lbl: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6 },
+  amount: { fontFamily: Fonts.display, fontSize: 40, color: Colors.t1, letterSpacing: -2, lineHeight: 44, marginBottom: 18 },
+  statsRow: { flexDirection: 'row', gap: 8 },
+  statBlock: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: Radius.sm, padding: 10,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+  },
+  statVal: { fontFamily: Fonts.heading, fontSize: 14 },
+  statLbl: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+  statLblTxt: { fontFamily: Fonts.mono, fontSize: 9, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 0.8 },
 });

@@ -6,55 +6,55 @@ import { FinanceService } from '../services/finance-service';
 
 export function useFinance() {
   const [items, setItems] = useState<ListItem[]>(() => FinanceRepository.listAll());
-  const [period, setPeriod] = useState<Period>('mes');
+  const [period, setPeriod] = useState<Period>('month');
   const [isSaving, setIsSaving] = useState(false);
 
   const refresh = useCallback(() => {
     setItems(FinanceRepository.listAll());
   }, []);
 
-  const filteredItems = useMemo(() => 
-    FinanceService.filterByPeriod(items, period), 
+  const filteredItems = useMemo(() =>
+    FinanceService.filterByPeriod(items, period),
     [items, period]
   );
 
-  const summary = useMemo(() => 
-    FinanceService.calculateSummary(filteredItems), 
+  const summary = useMemo(() =>
+    FinanceService.calculateSummary(filteredItems),
     [filteredItems]
   );
 
-  const groupedItems = useMemo(() => 
-    FinanceService.groupByDate(filteredItems), 
+  const groupedItems = useMemo(() =>
+    FinanceService.groupByDate(filteredItems),
     [filteredItems]
   );
 
-  const insights = useMemo(() => 
-    FinanceService.generateInsights(filteredItems, items), 
+  const insights = useMemo(() =>
+    FinanceService.generateInsights(filteredItems, items),
     [filteredItems, items]
   );
 
-  const addIncome = useCallback(async (data: Parameters<typeof FinanceRepository.insertIncome>[0]) => {
+  const addIncome = useCallback(async (data: Parameters<typeof FinanceRepository.addIncome>[0]) => {
     setIsSaving(true);
     try {
-      FinanceRepository.insertIncome(data);
+      FinanceRepository.addIncome(data);
       refresh();
       return true;
     } catch (e) {
-      Alert.alert('Error', String(e));
+      Alert.alert('Erro', String(e));
       return false;
     } finally {
       setIsSaving(false);
     }
   }, [refresh]);
 
-  const addExpense = useCallback(async (data: Parameters<typeof FinanceRepository.insertExpense>[0]) => {
+  const addExpense = useCallback(async (data: Parameters<typeof FinanceRepository.addExpense>[0]) => {
     setIsSaving(true);
     try {
-      FinanceRepository.insertExpense(data);
+      FinanceRepository.addExpense(data);
       refresh();
       return true;
     } catch (e) {
-      Alert.alert('Error', String(e));
+      Alert.alert('Erro', String(e));
       return false;
     } finally {
       setIsSaving(false);
@@ -63,13 +63,13 @@ export function useFinance() {
 
   const removeItem = useCallback((item: ListItem) => {
     if (!item.id) return;
-    
-    Alert.alert('Remove', 'Do you want to remove this record?', [
-      { text: 'Cancel', style: 'cancel' },
+
+    Alert.alert('Remover', 'Deseja remover este registro?', [
+      { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Remove', style: 'destructive',
+        text: 'Remover', style: 'destructive',
         onPress: () => {
-          if (item.nature === 'income') {
+          if (item.type === 'income') {
             FinanceRepository.deleteIncome(item.id!);
           } else {
             FinanceRepository.deleteExpense(item.id!);

@@ -38,8 +38,8 @@ export const FinanceService = {
 
       let label: string;
       let sortKey: string;
-      if (t === today.getTime()) { label = 'Today'; sortKey = 'z_today'; }
-      else if (t === yesterday.getTime()) { label = 'Yesterday'; sortKey = 'z_yesterday'; }
+      if (t === today.getTime()) { label = 'Hoje'; sortKey = 'z_today'; }
+      else if (t === yesterday.getTime()) { label = 'Ontem'; sortKey = 'z_yesterday'; }
       else {
         const dd = String(day.getDate()).padStart(2, '0');
         const mm = String(day.getMonth() + 1).padStart(2, '0');
@@ -78,7 +78,7 @@ export const FinanceService = {
       const byCat = new Map<string, number>();
       expensesFilter.forEach((g) => byCat.set(g.category, (byCat.get(g.category) ?? 0) + g.amount));
       const top = [...byCat.entries()].sort((a, b) => b[1] - a[1])[0];
-      if (top) result.push(`Highest expense: ${top[0]}`);
+      if (top) result.push(`Maior gasto: ${top[0]}`);
     }
 
     const now = new Date();
@@ -90,7 +90,7 @@ export const FinanceService = {
       })
       .reduce((s, i) => s + i.amount, 0);
 
-    if (spentToday > 0) result.push(`Total spent today: $ ${spentToday.toFixed(2)}`);
+    if (spentToday > 0) result.push(`Total gasto hoje: R$ ${spentToday.toFixed(2)}`);
 
     return result;
   }

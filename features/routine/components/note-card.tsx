@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ROUTINE_COLORS } from '../constants';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Colors, Fonts, Radius } from '@/constants/design';
 import { Note } from '../types';
 import { formatNoteDate } from '../utils/formatters';
 
@@ -13,31 +14,33 @@ interface NoteCardProps {
 export function NoteCard({ note, onPress, onDelete }: NoteCardProps) {
   const hasTitle = note.title.trim().length > 0;
   const hasContent = note.content.trim().length > 0;
+
   return (
-    <TouchableOpacity style={s.noteCard} onPress={onPress} onLongPress={onDelete} activeOpacity={0.7}>
-      <View style={s.noteCardTop}>
-        <Text style={s.noteTitle} numberOfLines={1}>
-          {hasTitle ? note.title : 'Untitled'}
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.75}>
+      <View style={s.top}>
+        <Text style={s.title} numberOfLines={1}>
+          {hasTitle ? note.title : 'Sem título'}
         </Text>
-        <Text style={s.noteDate}>{formatNoteDate(note.updated_at)}</Text>
+        <TouchableOpacity onPress={onDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <IconSymbol name="trash" size={14} color={Colors.t3} />
+        </TouchableOpacity>
       </View>
       {hasContent && (
-        <Text style={s.notePreview} numberOfLines={2}>{note.content}</Text>
+        <Text style={s.preview} numberOfLines={2}>{note.content}</Text>
       )}
+      <Text style={s.date}>{formatNoteDate(note.updated_at)}</Text>
     </TouchableOpacity>
   );
 }
 
 const s = StyleSheet.create({
-  noteCard: {
-    backgroundColor: ROUTINE_COLORS.surface,
-    borderRadius: 14, padding: 14,
-    marginBottom: 10, gap: 6,
-    borderLeftWidth: 3, borderLeftColor: ROUTINE_COLORS.warning,
-    borderWidth: 1, borderColor: ROUTINE_COLORS.border,
+  card: {
+    backgroundColor: 'rgba(155,138,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(155,138,255,0.18)',
+    borderRadius: Radius.md, padding: 14, marginBottom: 8, gap: 4,
   },
-  noteCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  noteTitle: { fontSize: 14, fontWeight: '600', color: ROUTINE_COLORS.textPrimary, flex: 1 },
-  noteDate: { fontSize: 11, color: ROUTINE_COLORS.textMuted, marginLeft: 8, fontWeight: '500' },
-  notePreview: { fontSize: 13, color: ROUTINE_COLORS.textSecondary, lineHeight: 19 },
+  top: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  title: { fontFamily: Fonts.bodyBd, fontSize: 14, color: '#C4B5FD', flex: 1 },
+  preview: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(155,138,255,0.6)', lineHeight: 18 },
+  date: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, marginTop: 2 },
 });

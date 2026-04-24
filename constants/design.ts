@@ -1,62 +1,86 @@
 /**
- * Design system — single source of truth for colors, spacing, typography and shadows.
- * Import `T` in any screen to keep styles consistent across the app.
+ * Olie Design System — fonte única de verdade.
+ * Baseado no Design System Proposal (abril 2026).
  */
-export const T = {
-  // ── Palette ──────────────────────────────────────────────────────────────
-  brand:        '#0A7EA4',
-  brandDark:    '#0369A1',
-  brandSurface: '#E0F2FE',
 
-  income:        '#059669', // emerald-600
-  incomeSurface: '#ECFDF5',
+// ── Paleta de cores ──────────────────────────────────────────────────────────
+export const Colors = {
+  // Brand — Indigo Violet
+  brand:     '#7C6FFF',
+  brandDim:  'rgba(124,111,255,0.14)',
+  brandLt:   '#A99AFF',
 
-  expense:        '#DC2626', // red-600
-  expenseSurface: '#FEF2F2',
+  // Superfícies — Deep Navy
+  bg:       '#06071C',
+  bgCard:   '#0C0E28',
+  bgSurf:   '#141732',
+  bgRaised: '#1C1F3C',
 
-  warning:        '#D97706', // amber-600
-  warningSurface: '#FFFBEB',
+  // Bordas
+  bdr:  '#1C1F3C',
+  bdr2: '#252850',
 
-  task:        '#0A7EA4', // same as brand for consistency
-  taskSurface: '#E0F2FE',
+  // Texto
+  t1: '#ECEEFF',
+  t2: '#8C8BB2',
+  t3: '#464870',
 
-  // ── Backgrounds ──────────────────────────────────────────────────────────
-  bg:         '#F1F5F9', // app background (slate-100)
-  surface:    '#FFFFFF', // card / sheet surface
-  surfaceAlt: '#F8FAFC', // input / secondary surface
+  // Semânticas
+  income:  '#4ECBA3',
+  expense: '#F07B6B',
+  task:    '#9B8AFF',
+  note:    '#F5B94E',
+  danger:  '#F06B6B',
 
-  // ── Borders ──────────────────────────────────────────────────────────────
-  border:      '#E2E8F0', // slate-200
-  borderLight: '#EEF2F7',
+  // Superfícies semânticas (alpha)
+  incomeSurf:  'rgba(78,203,163,0.12)',
+  expenseSurf: 'rgba(240,123,107,0.12)',
+  taskSurf:    'rgba(155,138,255,0.10)',
+  noteSurf:    'rgba(245,185,78,0.10)',
 
-  // ── Text ─────────────────────────────────────────────────────────────────
-  textPrimary:   '#0F172A', // slate-900
-  textSecondary: '#475569', // slate-600
-  textMuted:     '#94A3B8', // slate-400
-
-  // ── Status (tasks) ───────────────────────────────────────────────────────
-  statusPending: '#94A3B8',
-  statusDoing:   '#D97706',
-  statusDone:    '#059669',
-
-  // ── Overlay ──────────────────────────────────────────────────────────────
-  overlay: 'rgba(15, 23, 42, 0.5)',
+  // Overlay
+  overlay: 'rgba(3,5,18,0.78)',
 } as const;
 
-/** Card shadow — use spread syntax: `{ ...shadow }` */
-export const shadow = {
-  shadowColor: '#0F172A',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.07,
-  shadowRadius: 4,
-  elevation: 2,
+// ── Border Radius ─────────────────────────────────────────────────────────────
+export const Radius = {
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 22,
+  xl: 28,
+  pill: 999,
 } as const;
 
-/** Stronger shadow for buttons / floating elements */
-export const shadowMd = {
-  shadowColor: '#0F172A',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.14,
-  shadowRadius: 10,
-  elevation: 5,
+// ── Tipografia ────────────────────────────────────────────────────────────────
+export const Fonts = {
+  display: 'PlusJakartaSans_800ExtraBold',
+  heading: 'PlusJakartaSans_700Bold',
+  body:    'DMSans_400Regular',
+  bodyMd:  'DMSans_500Medium',
+  bodySb:  'DMSans_600SemiBold',
+  bodyBd:  'DMSans_700Bold',
+  mono:    'DMMono_500Medium',
+  monoReg: 'DMMono_400Regular',
 } as const;
+
+
+export const Shadow = {
+  brand: {
+    shadowColor: '#7C6FFF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.38,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  card: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+} as const;
+
+// ── Tab bar ───────────────────────────────────────────────────────────────────
+export const TAB_HEIGHT = 68;

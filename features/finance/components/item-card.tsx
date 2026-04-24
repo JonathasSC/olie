@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { FINANCE_COLORS, CATEGORY_ICONS, CategoryIcon } from '../constants';
+import { Colors, Fonts, Radius } from '@/constants/design';
+import { CATEGORY_ICONS, CategoryIcon } from '../constants';
 import { Income, Expense, ListItem } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
@@ -11,32 +12,39 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onLongPress }: ItemCardProps) {
-  const isIncome = item.nature === 'income';
-  const color = isIncome ? FINANCE_COLORS.income : FINANCE_COLORS.expense;
-  const colorSurface = isIncome ? FINANCE_COLORS.incomeSurface : FINANCE_COLORS.expenseSurface;
+  const isIncome = item.type === 'income';
+  const color = isIncome ? Colors.income : Colors.expense;
+  const colorSurf = isIncome ? Colors.incomeSurf : Colors.expenseSurf;
   const icon = (CATEGORY_ICONS[item.category] ?? 'dollarsign.circle.fill') as CategoryIcon;
-  const expense = item as Expense;
+
+  const dateLabel = isIncome
+    ? (item as Income & { type: 'income' }).date
+    : (item as Expense & { type: 'expense' }).purchase_date;
+
+  const installments = !isIncome
+    ? (item as Expense & { type: 'expense' }).installments
+    : 1;
 
   return (
-    <TouchableOpacity style={s.card} onLongPress={onLongPress} activeOpacity={0.7}>
-      <View style={[s.cardIconWrap, { backgroundColor: colorSurface }]}>
-        <IconSymbol name={icon} size={20} color={color} />
+    <TouchableOpacity style={s.card} onLongPress={onLongPress} activeOpacity={0.75}>
+      <View style={[s.iconWrap, { backgroundColor: colorSurf }]}>
+        <IconSymbol name={icon} size={18} color={color} />
       </View>
-      <View style={s.cardMiddle}>
-        <Text style={s.cardCategory}>{item.category}</Text>
-        <Text style={s.cardSub}>
+      <View style={s.mid}>
+        <Text style={s.category}>{item.category}</Text>
+        <Text style={s.meta}>
           {item.payment_type}
-          {!isIncome && expense.installments > 1 ? ` · ${expense.installments}x` : ''}
+          {!isIncome && installments > 1 ? ` · ${installments}x` : ''}
           {' · '}
-          {isIncome ? (item as Income).date : expense.purchase_date}
+          {dateLabel}
         </Text>
       </View>
-      <View style={s.cardRight}>
-        <Text style={[s.cardAmount, { color: color }]}>
-          {isIncome ? '+' : '−'} {formatCurrency(item.amount)}
+      <View style={s.right}>
+        <Text style={[s.amount, { color }]}>
+          {isIncome ? '+' : '−'}{formatCurrency(item.amount)}
         </Text>
-        {!isIncome && expense.installments > 1 && (
-          <Text style={s.cardInstallment}>1/{expense.installments}</Text>
+        {!isIncome && installments > 1 && (
+          <Text style={s.installment}>1/{installments}</Text>
         )}
       </View>
     </TouchableOpacity>
@@ -45,21 +53,17 @@ export function ItemCard({ item, onLongPress }: ItemCardProps) {
 
 const s = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: FINANCE_COLORS.surface,
-    borderRadius: 14,
-    padding: 13,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: Colors.bgCard,
+    borderRadius: Radius.md, padding: 13, paddingHorizontal: 14,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: FINANCE_COLORS.border,
+    borderWidth: 1, borderColor: Colors.bdr,
   },
-  cardIconWrap: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  cardMiddle: { flex: 1, gap: 3 },
-  cardCategory: { fontSize: 14, fontWeight: '600', color: FINANCE_COLORS.textPrimary },
-  cardSub: { fontSize: 12, color: FINANCE_COLORS.textMuted },
-  cardRight: { alignItems: 'flex-end', gap: 3 },
-  cardAmount: { fontSize: 15, fontWeight: '700' },
-  cardInstallment: { fontSize: 11, color: FINANCE_COLORS.textMuted },
+  iconWrap: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  mid: { flex: 1, gap: 2 },
+  category: { fontFamily: Fonts.bodySb, fontSize: 14, color: Colors.t1 },
+  meta: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
+  right: { alignItems: 'flex-end', gap: 2 },
+  amount: { fontFamily: Fonts.heading, fontSize: 15 },
+  installment: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
 });

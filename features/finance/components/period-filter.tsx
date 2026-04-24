@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { FINANCE_COLORS } from '../constants';
+import { Colors, Fonts, Radius } from '@/constants/design';
 import { Period } from '../types';
 
 interface PeriodFilterProps {
@@ -9,38 +9,39 @@ interface PeriodFilterProps {
 }
 
 export function PeriodFilter({ period, onPeriodChange }: PeriodFilterProps) {
-  const options: Period[] = ['hoje', 'semana', 'mes'];
-  const labels: Record<Period, string> = {
-    hoje: 'Today',
-    semana: 'Week',
-    mes: 'Month',
-  };
+  const options: { key: Period; label: string }[] = [
+    { key: 'today',  label: 'Hoje' },
+    { key: 'week',   label: 'Semana' },
+    { key: 'month',  label: 'Mês' },
+  ];
 
   return (
-    <View style={s.filterRow}>
-      {options.map((p) => (
-        <TouchableOpacity
-          key={p}
-          style={[s.filterButton, period === p && s.filterButtonActive]}
-          onPress={() => onPeriodChange(p)}
-        >
-          <Text style={[s.filterText, period === p && s.filterTextActive]}>
-            {labels[p]}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={s.row}>
+      {options.map(({ key, label }) => {
+        const active = period === key;
+        return (
+          <TouchableOpacity
+            key={key}
+            style={[s.btn, active && s.btnActive]}
+            onPress={() => onPeriodChange(key)}
+            activeOpacity={0.75}
+          >
+            <Text style={[s.txt, active && s.txtActive]}>{label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  filterButton: {
-    flex: 1, paddingVertical: 9, borderRadius: 22,
-    backgroundColor: FINANCE_COLORS.surface, alignItems: 'center',
-    borderWidth: 1.5, borderColor: FINANCE_COLORS.border,
+  row: { flexDirection: 'row', gap: 6, marginBottom: 14 },
+  btn: {
+    flex: 1, paddingVertical: 8, borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.bdr,
+    backgroundColor: 'transparent', alignItems: 'center',
   },
-  filterButtonActive: { backgroundColor: FINANCE_COLORS.accent, borderColor: FINANCE_COLORS.accent },
-  filterText: { fontSize: 13, fontWeight: '600', color: FINANCE_COLORS.textSecondary },
-  filterTextActive: { color: '#fff' },
+  btnActive: { backgroundColor: Colors.brandDim, borderColor: 'rgba(124,111,255,0.4)' },
+  txt: { fontFamily: Fonts.bodyBd, fontSize: 12, color: Colors.t3 },
+  txtActive: { color: Colors.brandLt },
 });

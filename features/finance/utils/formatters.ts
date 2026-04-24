@@ -38,5 +38,5 @@ export function parseAmount(v: string): number {
 }
 
 export function formatCurrency(v: number): string {
-  return `$ ${v.toFixed(2)}`;
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

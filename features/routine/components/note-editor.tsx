@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ROUTINE_COLORS } from '../constants';
+import { Colors, Fonts, Radius, Shadow } from '@/constants/design';
 import { Note } from '../types';
 
 interface NoteEditorProps {
@@ -25,45 +25,42 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
   const [content, setContent] = useState(note?.content ?? '');
 
   return (
-    <SafeAreaView style={s.editorScreen}>
+    <SafeAreaView style={s.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={s.editorHeader}>
-          <TouchableOpacity onPress={onClose} style={s.editorHeaderBtn}>
-            <IconSymbol name="xmark" size={20} color={ROUTINE_COLORS.textSecondary} />
+        <View style={s.hdr}>
+          <TouchableOpacity onPress={onClose} style={s.hdrBtn}>
+            <IconSymbol name="xmark" size={20} color={Colors.t2} />
           </TouchableOpacity>
-          <Text style={s.editorHeaderTitle}>{note ? 'Edit note' : 'New note'}</Text>
+          <Text style={s.hdrTitle}>{note ? 'Editar nota' : 'Nova nota'}</Text>
           <TouchableOpacity
-            style={[s.editorHeaderBtn, s.editorSaveBtn]}
-            onPress={() => {
-              onSave(title, content, note?.id);
-              onClose();
-            }}
+            style={s.saveBtn}
+            onPress={() => { onSave(title, content, note?.id); onClose(); }}
           >
-            <Text style={s.editorSaveText}>Save</Text>
+            <Text style={s.saveTxt}>Salvar</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={s.editorDivider} />
+        <View style={s.divider} />
 
         <ScrollView
-          style={s.editorScroll}
-          contentContainerStyle={s.editorScrollContent}
+          style={s.scroll}
+          contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           <TextInput
-            style={s.editorTitle}
-            placeholder="Title"
-            placeholderTextColor={ROUTINE_COLORS.border}
+            style={s.titleInput}
+            placeholder="Título"
+            placeholderTextColor={Colors.bdr2}
             value={title}
             onChangeText={setTitle}
             returnKeyType="next"
             blurOnSubmit={false}
           />
-          <View style={s.editorSeparator} />
+          <View style={s.sep} />
           <TextInput
-            style={s.editorBody}
-            placeholder="Write here..."
-            placeholderTextColor={ROUTINE_COLORS.border}
+            style={s.bodyInput}
+            placeholder="Escreva aqui..."
+            placeholderTextColor={Colors.bdr2}
             value={content}
             onChangeText={setContent}
             multiline
@@ -77,29 +74,25 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
 }
 
 const s = StyleSheet.create({
-  editorScreen: { flex: 1, backgroundColor: ROUTINE_COLORS.surfaceHigh },
-  editorHeader: {
+  screen: { flex: 1, backgroundColor: Colors.bgCard },
+  hdr: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: ROUTINE_COLORS.borderLight,
   },
-  editorHeaderBtn: { padding: 4, minWidth: 44, alignItems: 'center' },
-  editorHeaderTitle: { fontSize: 15, fontWeight: '600', color: ROUTINE_COLORS.textSecondary },
-  editorSaveBtn: {
-    backgroundColor: ROUTINE_COLORS.accent, borderRadius: 20,
-    paddingHorizontal: 16, paddingVertical: 7, minWidth: 0,
-  },
-  editorSaveText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  editorDivider: { height: 1, backgroundColor: ROUTINE_COLORS.borderLight },
-  editorScroll: { flex: 1 },
-  editorScrollContent: { padding: 22, paddingBottom: 60 },
-  editorTitle: {
-    fontSize: 24, fontWeight: '700', color: ROUTINE_COLORS.textPrimary,
+  hdrBtn: { padding: 4, minWidth: 44, alignItems: 'center' },
+  hdrTitle: { fontFamily: Fonts.bodySb, fontSize: 15, color: Colors.t2 },
+  saveBtn: { backgroundColor: Colors.brand, borderRadius: Radius.pill, paddingHorizontal: 16, paddingVertical: 7 },
+  saveTxt: { fontFamily: Fonts.bodyBd, fontSize: 14, color: '#fff' },
+  divider: { height: 1, backgroundColor: Colors.bdr },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 22, paddingBottom: 60 },
+  titleInput: {
+    fontFamily: Fonts.heading, fontSize: 24, color: Colors.t1,
     paddingVertical: 0, marginBottom: 16, letterSpacing: -0.3,
   },
-  editorSeparator: { height: 1, backgroundColor: ROUTINE_COLORS.borderLight, marginBottom: 18 },
-  editorBody: {
-    fontSize: 16, color: ROUTINE_COLORS.textSecondary, lineHeight: 26,
+  sep: { height: 1, backgroundColor: Colors.bdr, marginBottom: 18 },
+  bodyInput: {
+    fontFamily: Fonts.body, fontSize: 16, color: Colors.t2, lineHeight: 26,
     minHeight: 300, paddingVertical: 0,
   },
 });

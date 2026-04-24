@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ROUTINE_COLORS } from '../constants';
+import { Colors, Fonts, Radius, Shadow } from '@/constants/design';
 import { TaskEditorState } from '../types';
 import { maskDate } from '../utils/formatters';
 
@@ -35,7 +35,7 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
   }, [state.isOpen, state.task, today]);
 
   function handleSave() {
-    if (!title.trim()) return Alert.alert('Attention', 'Enter the task title.');
+    if (!title.trim()) return Alert.alert('Atenção', 'Informe o título da tarefa.');
     onSave(title.trim(), date, state.task?.id);
     onClose();
   }
@@ -45,37 +45,40 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={s.overlay} />
       </TouchableWithoutFeedback>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.kav}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ justifyContent: 'flex-end' }}>
         <View style={s.sheet}>
           <View style={s.handle} />
-          <View style={s.sheetHeader}>
-            <Text style={s.sheetTitle}>{state.task ? 'Edit task' : 'New task'}</Text>
+          <View style={s.hdr}>
+            <Text style={s.title}>{state.task ? 'Editar Tarefa' : 'Nova Tarefa'}</Text>
             <TouchableOpacity onPress={onClose}>
-              <IconSymbol name="xmark" size={20} color={ROUTINE_COLORS.textMuted} />
+              <IconSymbol name="xmark" size={20} color={Colors.t3} />
             </TouchableOpacity>
           </View>
-          <Text style={s.label}>Title</Text>
+
+          <Text style={s.lbl}>Título</Text>
           <TextInput
             style={s.input}
-            placeholder="What do you need to do?"
-            placeholderTextColor={ROUTINE_COLORS.textMuted}
+            placeholder="O que precisa ser feito?"
+            placeholderTextColor={Colors.t3}
             value={title}
             onChangeText={setTitle}
             autoFocus={!state.task}
             returnKeyType="done"
           />
-          <Text style={s.label}>Date</Text>
+
+          <Text style={s.lbl}>Data</Text>
           <TextInput
             style={s.input}
-            placeholder="DD/MM/YYYY"
-            placeholderTextColor={ROUTINE_COLORS.textMuted}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor={Colors.t3}
             keyboardType="numeric"
             value={date}
             onChangeText={(t) => setDate(maskDate(t))}
             maxLength={10}
           />
-          <TouchableOpacity style={s.saveButton} onPress={handleSave}>
-            <Text style={s.saveButtonText}>Save</Text>
+
+          <TouchableOpacity style={s.saveBtn} onPress={handleSave} activeOpacity={0.85}>
+            <Text style={s.saveTxt}>Salvar tarefa</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -84,21 +87,28 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: ROUTINE_COLORS.overlay },
-  kav: { justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: Colors.overlay },
   sheet: {
-    backgroundColor: ROUTINE_COLORS.surfaceHigh, borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    backgroundColor: Colors.bgCard,
+    borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
     paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: Colors.bdr,
   },
-  handle: { width: 36, height: 4, backgroundColor: ROUTINE_COLORS.border, borderRadius: 2, alignSelf: 'center', marginBottom: 22 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
-  sheetTitle: { fontSize: 17, fontWeight: '700', color: ROUTINE_COLORS.textPrimary },
-  label: { fontSize: 12, fontWeight: '700', color: ROUTINE_COLORS.textMuted, marginBottom: 8, marginTop: 6, letterSpacing: 0.5, textTransform: 'uppercase' },
+  handle: { width: 36, height: 4, backgroundColor: Colors.bdr2, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  hdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  title: { fontFamily: Fonts.display, fontSize: 22, color: Colors.t1, letterSpacing: -0.6 },
+  lbl: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7, marginTop: 16 },
   input: {
-    borderWidth: 1.5, borderColor: ROUTINE_COLORS.border, borderRadius: 12,
+    backgroundColor: Colors.bgSurf,
+    borderWidth: 1.5, borderColor: Colors.bdr,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14, paddingVertical: 13,
-    fontSize: 15, color: ROUTINE_COLORS.textPrimary, marginBottom: 16, backgroundColor: ROUTINE_COLORS.surfaceInput,
+    fontFamily: Fonts.body, fontSize: 15, color: Colors.t1,
   },
-  saveButton: { backgroundColor: ROUTINE_COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
-  saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  saveBtn: {
+    backgroundColor: Colors.brand, borderRadius: Radius.md,
+    paddingVertical: 15, alignItems: 'center', marginTop: 20,
+    ...Shadow.brand,
+  },
+  saveTxt: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
 });

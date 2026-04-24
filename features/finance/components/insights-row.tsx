@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { FINANCE_COLORS } from '../constants';
+import { Colors, Fonts, Radius } from '@/constants/design';
 
 interface InsightsRowProps {
   insights: string[];
@@ -11,25 +11,26 @@ export function InsightsRow({ insights }: InsightsRowProps) {
   if (insights.length === 0) return null;
 
   return (
-    <View style={s.insightsRow}>
-      <IconSymbol name="lightbulb.fill" size={14} color={FINANCE_COLORS.warning} />
-      <Text style={s.insightsText}>{insights.join('  ·  ')}</Text>
+    <View style={s.card}>
+      <View style={s.ico}>
+        <IconSymbol name="lightbulb.fill" size={16} color={Colors.note} />
+      </View>
+      <Text style={s.txt}>{insights.join('  ·  ')}</Text>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  insightsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: FINANCE_COLORS.warningSurface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(251,191,36,0.25)',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
+  card: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: Colors.noteSurf,
+    borderWidth: 1, borderColor: 'rgba(245,185,78,0.20)',
+    borderRadius: Radius.md, padding: 12, paddingHorizontal: 14, marginBottom: 14,
   },
-  insightsText: { fontSize: 12, color: FINANCE_COLORS.warning, flex: 1, fontWeight: '500' },
+  ico: {
+    width: 32, height: 32, borderRadius: 10,
+    backgroundColor: 'rgba(245,185,78,0.12)',
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  txt: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t2, lineHeight: 18, flex: 1, marginTop: 7 },
 });
