@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -18,14 +19,13 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
         tabBarStyle: {
-          backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-          borderTopColor: isDark ? '#334155' : '#E8EEF4',
-          borderTopWidth: 1,
+          backgroundColor: isDark ? '#0A0A0A' : '#FFFFFF',
+          borderTopColor: isDark ? '#161616' : '#E8EEF4',
+          borderTopWidth: 1.5,
           elevation: 0,
-          shadowOpacity: 0,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 4,
+          height: Platform.OS === 'android' ? 68 : 60,
+          paddingBottom: Platform.OS === 'android' ? 12 : 8,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
