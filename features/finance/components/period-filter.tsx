@@ -5,7 +5,7 @@ import { Period } from '../types';
 
 interface PeriodFilterProps {
   period: Period;
-  onPeriodChange: (p: Period) => void;
+  onPeriodChange: (newPeriod: Period) => void;
 }
 
 export function PeriodFilter({ period, onPeriodChange }: PeriodFilterProps) {
@@ -16,17 +16,17 @@ export function PeriodFilter({ period, onPeriodChange }: PeriodFilterProps) {
   ];
 
   return (
-    <View style={s.row}>
+    <View style={styles.filterRow}>
       {options.map(({ key, label }) => {
-        const active = period === key;
+        const isActive = period === key;
         return (
           <TouchableOpacity
             key={key}
-            style={[s.btn, active && s.btnActive]}
+            style={[styles.filterButton, isActive && styles.filterButtonActive]}
             onPress={() => onPeriodChange(key)}
             activeOpacity={0.75}
           >
-            <Text style={[s.txt, active && s.txtActive]}>{label}</Text>
+            <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>{label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -34,14 +34,14 @@ export function PeriodFilter({ period, onPeriodChange }: PeriodFilterProps) {
   );
 }
 
-const s = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 6, marginBottom: 14 },
-  btn: {
+const styles = StyleSheet.create({
+  filterRow: { flexDirection: 'row', gap: 6, marginBottom: 14 },
+  filterButton: {
     flex: 1, paddingVertical: 8, borderRadius: Radius.sm,
     borderWidth: 1, borderColor: Colors.bdr,
     backgroundColor: 'transparent', alignItems: 'center',
   },
-  btnActive: { backgroundColor: Colors.brandDim, borderColor: 'rgba(124,111,255,0.4)' },
-  txt: { fontFamily: Fonts.bodyBd, fontSize: 12, color: Colors.t3 },
-  txtActive: { color: Colors.brandLt },
+  filterButtonActive: { backgroundColor: Colors.brandDim, borderColor: 'rgba(124,111,255,0.4)' },
+  filterButtonText: { fontFamily: Fonts.bodyBd, fontSize: 12, color: Colors.t3 },
+  filterButtonTextActive: { color: Colors.brandLt },
 });

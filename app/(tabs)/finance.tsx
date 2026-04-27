@@ -10,13 +10,12 @@ import {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Fonts, Radius, Shadow, TAB_HEIGHT } from '@/constants/design';
 
-import { useFinance } from '@/features/finance/hooks/use-finance';
-import { FINANCE_COLORS } from '@/features/finance/constants';
-import { SummaryCard } from '@/features/finance/components/summary-card';
-import { PeriodFilter } from '@/features/finance/components/period-filter';
+import { FormModal } from '@/features/finance/components/form-modal';
 import { InsightsRow } from '@/features/finance/components/insights-row';
 import { ItemCard } from '@/features/finance/components/item-card';
-import { FormModal } from '@/features/finance/components/form-modal';
+import { PeriodFilter } from '@/features/finance/components/period-filter';
+import { SummaryCard } from '@/features/finance/components/summary-card';
+import { useFinance } from '@/features/finance/hooks/use-finance';
 
 export default function FinanceScreen() {
   const {
@@ -34,23 +33,19 @@ export default function FinanceScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <View style={s.screen}>
+    <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={s.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         stickyHeaderIndices={[0]}
       >
-        {/* Sticky header */}
-        <View style={s.headerWrap}>
-          <View style={s.headerRow}>
+        <View style={styles.headerWrapper}>
+          <View style={styles.headerRow}>
             <View>
-              <Text style={s.pageTitle}>Finanças</Text>
-              <Text style={s.pageSub}>
+              <Text style={styles.pageTitle}>Finanças</Text>
+              <Text style={styles.pageSubtitle}>
                 {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}
               </Text>
-            </View>
-            <View style={s.avatarWrap}>
-              <IconSymbol name="person.fill" size={18} color={Colors.brandLt} />
             </View>
           </View>
         </View>
@@ -62,16 +57,16 @@ export default function FinanceScreen() {
         <InsightsRow insights={insights} />
 
         {groupedItems.length === 0 ? (
-          <View style={s.empty}>
+          <View style={styles.emptyState}>
             <IconSymbol name="wallet.pass" size={32} color={Colors.bdr} />
-            <Text style={s.emptyTxt}>Nenhum registro neste período.</Text>
+            <Text style={styles.emptyStateText}>Nenhum registro neste período.</Text>
           </View>
         ) : (
           groupedItems.map((group) => (
             <View key={group.sortKey}>
-              <View style={s.grpHdr}>
-                <Text style={s.grpLbl}>{group.label}</Text>
-                <View style={s.grpLine} />
+              <View style={styles.groupHeader}>
+                <Text style={styles.groupLabel}>{group.label}</Text>
+                <View style={styles.groupDivider} />
               </View>
               {group.items.map((item, i) => (
                 <ItemCard
@@ -87,11 +82,10 @@ export default function FinanceScreen() {
         <View style={{ height: TAB_HEIGHT + 80 }} />
       </ScrollView>
 
-      {/* FAB */}
-      <View style={s.fabWrap}>
-        <TouchableOpacity style={s.fabBtn} activeOpacity={0.85} onPress={() => setIsModalOpen(true)}>
+      <View style={styles.fabWrapper}>
+        <TouchableOpacity style={styles.fabButton} activeOpacity={0.85} onPress={() => setIsModalOpen(true)}>
           <IconSymbol name="plus" size={18} color="#fff" />
-          <Text style={s.fabTxt}>Adicionar</Text>
+          <Text style={styles.fabText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
 
@@ -106,34 +100,44 @@ export default function FinanceScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { paddingHorizontal: 16, paddingBottom: 24 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 24 },
 
-  headerWrap: { backgroundColor: Colors.bg, paddingTop: 54, paddingBottom: 10 },
+  headerWrapper: { backgroundColor: Colors.bg, paddingTop: 54, paddingBottom: 10 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pageTitle: { fontFamily: Fonts.display, fontSize: 30, color: Colors.t1, letterSpacing: -1, lineHeight: 33 },
-  pageSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.t3, marginTop: 2 },
-  avatarWrap: {
+  pageSubtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.t3, marginTop: 2 },
+  avatarWrapper: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.brandDim,
     borderWidth: 1, borderColor: 'rgba(124,111,255,0.25)',
     alignItems: 'center', justifyContent: 'center',
   },
 
-  grpHdr: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 8 },
-  grpLbl: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1.2 },
-  grpLine: { flex: 1, height: 1, backgroundColor: Colors.bdr },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 8 },
+  groupLabel: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1.2 },
+  groupDivider: { flex: 1, height: 1, backgroundColor: Colors.bdr },
 
-  empty: { alignItems: 'center', paddingVertical: 48, gap: 10 },
-  emptyTxt: { fontFamily: Fonts.body, fontSize: 14, color: Colors.t3 },
+  emptyState: { alignItems: 'center', paddingVertical: 48, gap: 10 },
+  emptyStateText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.t3 },
 
-  fabWrap: { position: 'absolute', bottom: TAB_HEIGHT + 14, left: 16, right: 16 },
-  fabBtn: {
-    backgroundColor: Colors.brand, borderRadius: Radius.md,
-    paddingVertical: 16, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center', gap: 8,
+  fabWrapper: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 16 
+  },
+  
+  fabButton: {
+    gap: 8,
+    paddingVertical: 16, 
+    alignItems: 'center', 
+    flexDirection: 'row',
+    borderRadius: Radius.xs,
+    justifyContent: 'center', 
+    backgroundColor: Colors.brand, 
     ...Shadow.brand,
   },
-  fabTxt: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
+  fabText: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
 });

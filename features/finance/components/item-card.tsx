@@ -26,32 +26,32 @@ export function ItemCard({ item, onLongPress }: ItemCardProps) {
     : 1;
 
   return (
-    <TouchableOpacity style={s.card} onLongPress={onLongPress} activeOpacity={0.75}>
-      <View style={[s.iconWrap, { backgroundColor: colorSurf }]}>
+    <TouchableOpacity style={styles.card} onLongPress={onLongPress} activeOpacity={0.75}>
+      <View style={[styles.categoryIconWrapper, { backgroundColor: colorSurf }]}>
         <IconSymbol name={icon} size={18} color={color} />
       </View>
-      <View style={s.mid}>
-        <Text style={s.category}>{item.category}</Text>
-        <Text style={s.meta}>
+      <View style={styles.itemInfo}>
+        <Text style={styles.category}>{item.category}</Text>
+        <Text style={styles.meta}>
           {item.payment_type}
           {!isIncome && installments > 1 ? ` · ${installments}x` : ''}
           {' · '}
           {dateLabel}
         </Text>
       </View>
-      <View style={s.right}>
-        <Text style={[s.amount, { color }]}>
+      <View style={styles.amountSection}>
+        <Text style={[styles.amount, { color }]}>
           {isIncome ? '+' : '−'}{formatCurrency(item.amount)}
         </Text>
         {!isIncome && installments > 1 && (
-          <Text style={s.installment}>1/{installments}</Text>
+          <Text style={styles.installment}>1/{installments}</Text>
         )}
       </View>
     </TouchableOpacity>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: Colors.bgCard,
@@ -59,11 +59,11 @@ const s = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1, borderColor: Colors.bdr,
   },
-  iconWrap: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  mid: { flex: 1, gap: 2 },
+  categoryIconWrapper: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  itemInfo: { flex: 1, gap: 2 },
   category: { fontFamily: Fonts.bodySb, fontSize: 14, color: Colors.t1 },
   meta: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
-  right: { alignItems: 'flex-end', gap: 2 },
+  amountSection: { alignItems: 'flex-end', gap: 2 },
   amount: { fontFamily: Fonts.heading, fontSize: 15 },
   installment: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
 });

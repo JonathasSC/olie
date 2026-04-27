@@ -19,7 +19,7 @@ afterEach(() => {
   (db as any).closeSync();
 });
 
-const sampleTask = { title: 'Estudar', status: 'pending' as const, date: '2024-01-10' };
+const sampleTask = { title: 'Estudar', status: 'pending' as const, date: '2024-01-10', priority: 'normal' as const, recurrence: 'none' as const };
 const sampleNote = { title: 'Ideia', content: 'Conteúdo da nota' };
 
 describe('RoutineRepository — tasks', () => {
@@ -34,7 +34,7 @@ describe('RoutineRepository — tasks', () => {
 
   it('listAllTasks retorna as tasks inseridas', () => {
     RoutineRepository.insertTask(sampleTask);
-    RoutineRepository.insertTask({ title: 'Correr', status: 'doing', date: '2024-01-11' });
+    RoutineRepository.insertTask({ title: 'Correr', status: 'doing', date: '2024-01-11', priority: 'normal', recurrence: 'none' });
 
     const list = RoutineRepository.listAllTasks();
     expect(list).toHaveLength(2);
@@ -42,9 +42,9 @@ describe('RoutineRepository — tasks', () => {
   });
 
   it('listAllTasks ordena: pending → doing → completed', () => {
-    RoutineRepository.insertTask({ title: 'C', status: 'completed', date: '2024-01-01' });
-    RoutineRepository.insertTask({ title: 'D', status: 'doing', date: '2024-01-01' });
-    RoutineRepository.insertTask({ title: 'P', status: 'pending', date: '2024-01-01' });
+    RoutineRepository.insertTask({ title: 'C', status: 'completed', date: '2024-01-01', priority: 'normal', recurrence: 'none' });
+    RoutineRepository.insertTask({ title: 'D', status: 'doing', date: '2024-01-01', priority: 'normal', recurrence: 'none' });
+    RoutineRepository.insertTask({ title: 'P', status: 'pending', date: '2024-01-01', priority: 'normal', recurrence: 'none' });
 
     const list = RoutineRepository.listAllTasks();
     expect(list.map((t) => t.status)).toEqual(['pending', 'doing', 'completed']);
@@ -52,7 +52,7 @@ describe('RoutineRepository — tasks', () => {
 
   it('updateTask altera título e data', () => {
     const id = RoutineRepository.insertTask(sampleTask);
-    RoutineRepository.updateTask(id, 'Novo título', '2024-06-01');
+    RoutineRepository.updateTask(id, { title: 'Novo título', date: '2024-06-01', priority: 'normal', recurrence: 'none', reminder_time: null });
 
     const tasks = RoutineRepository.listAllTasks();
     const updated = tasks.find((t) => t.id === id);
@@ -77,7 +77,7 @@ describe('RoutineRepository — tasks', () => {
 
   it('deleteTask remove apenas a task alvo', () => {
     const id1 = RoutineRepository.insertTask(sampleTask);
-    RoutineRepository.insertTask({ title: 'Outra', status: 'pending', date: '2024-01-12' });
+    RoutineRepository.insertTask({ title: 'Outra', status: 'pending', date: '2024-01-12', priority: 'normal', recurrence: 'none' });
     RoutineRepository.deleteTask(id1);
     expect(RoutineRepository.listAllTasks()).toHaveLength(1);
     expect(RoutineRepository.listAllTasks()[0].title).toBe('Outra');
@@ -119,9 +119,11 @@ describe('RoutineRepository — notes', () => {
     const id = RoutineRepository.insertNote(sampleNote.title, sampleNote.content);
     const before = RoutineRepository.listNotes().find((n) => n.id === id)?.updated_at;
 
+    jest.useFakeTimers().setSystemTime(new Date('2000-01-01T00:00:00.000Z'));
     RoutineRepository.updateNote(id, 'X', 'Y');
-    const after = RoutineRepository.listNotes().find((n) => n.id === id)?.updated_at;
+    jest.useRealTimers();
 
+    const after = RoutineRepository.listNotes().find((n) => n.id === id)?.updated_at;
     expect(after).not.toBeUndefined();
     expect(after).not.toBe(before);
   });

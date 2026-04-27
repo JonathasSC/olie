@@ -1,7 +1,10 @@
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
+import { NotificationService } from '@/services/notifications';
 import {
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
@@ -25,6 +28,16 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  useEffect(() => { NotificationService.requestPermissions(); }, []);
+
+  useEffect(() => {
+    // Navigate to the routine tab when the user taps any reminder notification
+    const sub = Notifications.addNotificationResponseReceivedListener(() => {
+      router.replace('/routine');
+    });
+    return () => sub.remove();
+  }, []);
+
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,

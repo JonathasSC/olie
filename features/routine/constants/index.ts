@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/design';
-import { TaskStatus } from '../types';
+import { TaskPriority, TaskRecurrence, TaskStatus } from '../types';
 
 export const ROUTINE_COLORS = {
   bg:           Colors.bg,
@@ -24,6 +24,25 @@ export const ROUTINE_COLORS = {
   statusDone:    Colors.income,
   overlay:       Colors.overlay,
 } as const;
+
+export const PRIORITY_LABEL: Record<TaskPriority, string> = {
+  low: 'baixa',
+  normal: 'normal',
+  high: 'alta',
+};
+
+export const PRIORITY_COLOR: Record<TaskPriority, string> = {
+  low: Colors.t3,
+  normal: Colors.t2,
+  high: Colors.expense,
+};
+
+export const RECURRENCE_LABEL: Record<TaskRecurrence, string> = {
+  none: 'não repete',
+  daily: 'todo dia',
+  weekly: 'toda semana',
+  monthly: 'todo mês',
+};
 
 export const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
   pending: 'doing',

@@ -11,26 +11,26 @@ export function InsightsRow({ insights }: InsightsRowProps) {
   if (insights.length === 0) return null;
 
   return (
-    <View style={s.card}>
-      <View style={s.ico}>
+    <View style={styles.card}>
+      <View style={styles.iconWrapper}>
         <IconSymbol name="lightbulb.fill" size={16} color={Colors.note} />
       </View>
-      <Text style={s.txt}>{insights.join('  ·  ')}</Text>
+      <Text style={styles.insightText}>{insights.join('  ·  ')}</Text>
     </View>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     backgroundColor: Colors.noteSurf,
     borderWidth: 1, borderColor: 'rgba(245,185,78,0.20)',
     borderRadius: Radius.md, padding: 12, paddingHorizontal: 14, marginBottom: 14,
   },
-  ico: {
+  iconWrapper: {
     width: 32, height: 32, borderRadius: 10,
     backgroundColor: 'rgba(245,185,78,0.12)',
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  txt: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t2, lineHeight: 18, flex: 1, marginTop: 7 },
+  insightText: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t2, lineHeight: 18, flex: 1, marginTop: 7 },
 });

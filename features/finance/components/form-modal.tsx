@@ -80,22 +80,22 @@ export function FormModal({ isVisible, onClose, isSaving, onSaveIncome, onSaveEx
   return (
     <Modal visible={isVisible} animationType="slide" transparent onRequestClose={cleanAndExit}>
       <TouchableWithoutFeedback onPress={cleanAndExit}>
-        <View style={s.overlay} />
+        <View style={styles.overlay} />
       </TouchableWithoutFeedback>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ justifyContent: 'flex-end' }}>
-        <View style={s.sheet}>
-          <View style={s.handle} />
+        <View style={styles.sheetContainer}>
+          <View style={styles.dragHandle} />
 
           {formType === null ? (
             <TypeChoice onChoose={setFormType} />
           ) : (
             <>
-              <View style={s.formHdr}>
-                <TouchableOpacity onPress={() => setFormType(null)} style={s.backBtn}>
+              <View style={styles.formHeader}>
+                <TouchableOpacity onPress={() => setFormType(null)} style={styles.backButton}>
                   <IconSymbol name="chevron.left" size={20} color={Colors.t2} />
                 </TouchableOpacity>
-                <Text style={s.formTitle}>
+                <Text style={styles.formTitle}>
                   {formType === 'income' ? 'Registrar Receita' : 'Registrar Despesa'}
                 </Text>
                 <TouchableOpacity onPress={cleanAndExit}>
@@ -118,33 +118,33 @@ export function FormModal({ isVisible, onClose, isSaving, onSaveIncome, onSaveEx
   );
 }
 
-function TypeChoice({ onChoose }: { onChoose: (t: FormType) => void }) {
+function TypeChoice({ onChoose }: { onChoose: (type: FormType) => void }) {
   return (
-    <View style={s.choice}>
-      <Text style={s.choiceTitle}>O que deseja registrar?</Text>
+    <View style={styles.typeChoiceContainer}>
+      <Text style={styles.typeChoiceTitle}>O que deseja registrar?</Text>
       <TouchableOpacity
-        style={[s.choiceCard, { borderColor: 'rgba(78,203,163,0.30)' }]}
+        style={[styles.typeOptionCard, { borderColor: 'rgba(78,203,163,0.30)' }]}
         onPress={() => onChoose('income')}
       >
-        <View style={[s.choiceIco, { backgroundColor: Colors.incomeSurf }]}>
+        <View style={[styles.typeOptionIcon, { backgroundColor: Colors.incomeSurf }]}>
           <IconSymbol name="briefcase.fill" size={26} color={Colors.income} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[s.choiceCardTitle, { color: Colors.income }]}>Receita</Text>
-          <Text style={s.choiceCardSub}>Salário, freelance, bônus...</Text>
+          <Text style={[styles.typeOptionTitle, { color: Colors.income }]}>Receita</Text>
+          <Text style={styles.typeOptionSubtitle}>Salário, freelance, bônus...</Text>
         </View>
         <IconSymbol name="chevron.right" size={16} color={Colors.t3} />
       </TouchableOpacity>
       <TouchableOpacity
-        style={[s.choiceCard, { borderColor: 'rgba(240,123,107,0.30)' }]}
+        style={[styles.typeOptionCard, { borderColor: 'rgba(240,123,107,0.30)' }]}
         onPress={() => onChoose('expense')}
       >
-        <View style={[s.choiceIco, { backgroundColor: Colors.expenseSurf }]}>
+        <View style={[styles.typeOptionIcon, { backgroundColor: Colors.expenseSurf }]}>
           <IconSymbol name="doc.text.fill" size={26} color={Colors.expense} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[s.choiceCardTitle, { color: Colors.expense }]}>Despesa</Text>
-          <Text style={s.choiceCardSub}>Alimentação, contas, compras...</Text>
+          <Text style={[styles.typeOptionTitle, { color: Colors.expense }]}>Despesa</Text>
+          <Text style={styles.typeOptionSubtitle}>Alimentação, contas, compras...</Text>
         </View>
         <IconSymbol name="chevron.right" size={16} color={Colors.t3} />
       </TouchableOpacity>
@@ -153,21 +153,21 @@ function TypeChoice({ onChoose }: { onChoose: (t: FormType) => void }) {
 }
 
 function IncomeFormView({ form, onChange, onSave, isSaving }: any) {
-  const set = (p: any) => onChange((f: any) => ({ ...f, ...p }));
+  const updateField = (partialUpdate: any) => onChange((currentForm: any) => ({ ...currentForm, ...partialUpdate }));
   return (
     <>
-      <Label t="Valor (R$)" />
-      <Input placeholder="0,00" keyboardType="numeric"
+      <FieldLabel text="Valor (R$)" />
+      <FieldInput placeholder="0,00" keyboardType="numeric"
         value={form.amount}
-        onChangeText={(t: string) => set({ amount: maskAmount(t) })}
+        onChangeText={(text: string) => updateField({ amount: maskAmount(text) })}
       />
-      <Label t="Categoria" />
-      <Chips options={INCOME_CATEGORIES} value={form.category} onSelect={(v: string) => set({ category: v })} color={Colors.income} />
-      <Label t="Forma de recebimento" />
-      <Chips options={INCOME_TYPES} value={form.type} onSelect={(v: string) => set({ type: v })} color={Colors.income} />
-      <Label t="Data" />
-      <Input placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.date} maxLength={10}
-        onChangeText={(t: string) => set({ date: maskDate(t) })}
+      <FieldLabel text="Categoria" />
+      <ChipSelector options={INCOME_CATEGORIES} value={form.category} onSelect={(value: string) => updateField({ category: value })} color={Colors.income} />
+      <FieldLabel text="Forma de recebimento" />
+      <ChipSelector options={INCOME_TYPES} value={form.type} onSelect={(value: string) => updateField({ type: value })} color={Colors.income} />
+      <FieldLabel text="Data" />
+      <FieldInput placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.date} maxLength={10}
+        onChangeText={(text: string) => updateField({ date: maskDate(text) })}
       />
       <SaveButton onPress={onSave} isSaving={isSaving} color={Colors.income} />
     </>
@@ -175,135 +175,138 @@ function IncomeFormView({ form, onChange, onSave, isSaving }: any) {
 }
 
 function ExpenseFormView({ form, onChange, onSave, isSaving }: any) {
-  const set = (p: any) => onChange((f: any) => ({ ...f, ...p }));
+  const updateField = (partialUpdate: any) => onChange((currentForm: any) => ({ ...currentForm, ...partialUpdate }));
   return (
     <>
-      <Label t="Valor (R$)" />
-      <Input placeholder="0,00" keyboardType="numeric"
+      <FieldLabel text="Valor (R$)" />
+      <FieldInput placeholder="0,00" keyboardType="numeric"
         value={form.amount}
-        onChangeText={(t: string) => set({ amount: maskAmount(t) })}
+        onChangeText={(text: string) => updateField({ amount: maskAmount(text) })}
       />
-      <Label t="Categoria" />
-      <Chips options={EXPENSE_CATEGORIES} value={form.category} onSelect={(v: string) => set({ category: v })} color={Colors.brand} />
-      <Label t="Forma de pagamento" />
-      <Chips options={EXPENSE_TYPES} value={form.type} onSelect={(v: string) => set({ type: v })} color={Colors.brand} />
-      <Label t="Parcelas" />
-      <View style={s.installRow}>
-        <TouchableOpacity style={s.installBtn} onPress={() => set({ installments: Math.max(1, form.installments - 1) })}>
-          <Text style={s.installBtnTxt}>−</Text>
+      <FieldLabel text="Categoria" />
+      <ChipSelector options={EXPENSE_CATEGORIES} value={form.category} onSelect={(value: string) => updateField({ category: value })} color={Colors.brand} />
+      <FieldLabel text="Forma de pagamento" />
+      <ChipSelector options={EXPENSE_TYPES} value={form.type} onSelect={(value: string) => updateField({ type: value })} color={Colors.brand} />
+      <FieldLabel text="Parcelas" />
+      <View style={styles.installmentsRow}>
+        <TouchableOpacity style={styles.installmentsButton} onPress={() => updateField({ installments: Math.max(1, form.installments - 1) })}>
+          <Text style={styles.installmentsButtonText}>−</Text>
         </TouchableOpacity>
-        <Text style={s.installNum}>{form.installments}x</Text>
-        <TouchableOpacity style={s.installBtn} onPress={() => set({ installments: form.installments + 1 })}>
-          <Text style={s.installBtnTxt}>+</Text>
+        <Text style={styles.installmentsCount}>{form.installments}x</Text>
+        <TouchableOpacity style={styles.installmentsButton} onPress={() => updateField({ installments: form.installments + 1 })}>
+          <Text style={styles.installmentsButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-      <Label t="Data da compra" />
-      <Input placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.purchase_date} maxLength={10}
-        onChangeText={(t: string) => set({ purchase_date: maskDate(t) })}
+      <FieldLabel text="Data da compra" />
+      <FieldInput placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.purchase_date} maxLength={10}
+        onChangeText={(text: string) => updateField({ purchase_date: maskDate(text) })}
       />
-      <Label t="Data do pagamento (1ª parcela)" />
-      <Input placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.payment_date} maxLength={10}
-        onChangeText={(t: string) => set({ payment_date: maskDate(t) })}
+      <FieldLabel text="Data do pagamento (1ª parcela)" />
+      <FieldInput placeholder="DD/MM/AAAA" keyboardType="numeric" value={form.payment_date} maxLength={10}
+        onChangeText={(text: string) => updateField({ payment_date: maskDate(text) })}
       />
       <SaveButton onPress={onSave} isSaving={isSaving} color={Colors.expense} />
     </>
   );
 }
 
-function Label({ t }: { t: string }) {
-  return <Text style={s.lbl}>{t}</Text>;
+function FieldLabel({ text }: { text: string }) {
+  return <Text style={styles.fieldLabel}>{text}</Text>;
 }
-function Input(props: any) {
+
+function FieldInput(props: any) {
   return (
     <TextInput
-      style={s.input}
+      style={styles.fieldInput}
       placeholderTextColor={Colors.t3}
       {...props}
     />
   );
 }
-function Chips({ options, value, onSelect, color }: any) {
+
+function ChipSelector({ options, value, onSelect, color }: any) {
   return (
-    <View style={s.chips}>
-      {options.map((op: string) => {
-        const active = value === op;
+    <View style={styles.chipsRow}>
+      {options.map((option: string) => {
+        const isActive = value === option;
         return (
           <TouchableOpacity
-            key={op}
-            style={[s.chip, active && { backgroundColor: color + '22', borderColor: color }]}
-            onPress={() => onSelect(op)}
+            key={option}
+            style={[styles.chip, isActive && { backgroundColor: color + '22', borderColor: color }]}
+            onPress={() => onSelect(option)}
           >
-            <Text style={[s.chipTxt, active && { color, fontFamily: Fonts.bodySb }]}>{op}</Text>
+            <Text style={[styles.chipText, isActive && { color, fontFamily: Fonts.bodySb }]}>{option}</Text>
           </TouchableOpacity>
         );
       })}
     </View>
   );
 }
+
 function SaveButton({ onPress, isSaving, color }: any) {
   return (
     <TouchableOpacity
-      style={[s.saveBtn, { backgroundColor: color }, isSaving && { opacity: 0.55 }]}
+      style={[styles.saveButton, { backgroundColor: color }, isSaving && { opacity: 0.55 }]}
       onPress={onPress}
       disabled={isSaving}
       activeOpacity={0.85}
     >
-      <Text style={s.saveTxt}>{isSaving ? 'Salvando...' : 'Salvar'}</Text>
+      <Text style={styles.saveButtonText}>{isSaving ? 'Salvando...' : 'Salvar'}</Text>
     </TouchableOpacity>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: Colors.overlay },
-  sheet: {
+  sheetContainer: {
     backgroundColor: Colors.bgCard,
     borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
     paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12,
     maxHeight: '92%',
     borderTopWidth: 1, borderTopColor: Colors.bdr,
   },
-  handle: { width: 36, height: 4, backgroundColor: Colors.bdr2, borderRadius: 2, alignSelf: 'center', marginBottom: 22 },
+  dragHandle: { width: 36, height: 4, backgroundColor: Colors.bdr2, borderRadius: 2, alignSelf: 'center', marginBottom: 22 },
 
-  choice: { gap: 12, paddingBottom: 8 },
-  choiceTitle: { fontFamily: Fonts.display, fontSize: 22, color: Colors.t1, letterSpacing: -0.6, marginBottom: 6 },
-  choiceCard: {
+  typeChoiceContainer: { gap: 12, paddingBottom: 8 },
+  typeChoiceTitle: { fontFamily: Fonts.display, fontSize: 22, color: Colors.t1, letterSpacing: -0.6, marginBottom: 6 },
+  typeOptionCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     borderWidth: 1.5, borderRadius: Radius.md, padding: 16,
     backgroundColor: Colors.bgSurf,
   },
-  choiceIco: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  choiceCardTitle: { fontFamily: Fonts.heading, fontSize: 16 },
-  choiceCardSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t3, marginTop: 2 },
+  typeOptionIcon: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  typeOptionTitle: { fontFamily: Fonts.heading, fontSize: 16 },
+  typeOptionSubtitle: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t3, marginTop: 2 },
 
-  formHdr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
-  backBtn: { padding: 6, marginLeft: -4 },
+  formHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  backButton: { padding: 6, marginLeft: -4 },
   formTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.t1 },
 
-  lbl: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7, marginTop: 16 },
-  input: {
+  fieldLabel: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7, marginTop: 16 },
+  fieldInput: {
     backgroundColor: Colors.bgSurf,
     borderWidth: 1.5, borderColor: Colors.bdr,
     borderRadius: Radius.sm,
     paddingHorizontal: 14, paddingVertical: 13,
     fontFamily: Fonts.body, fontSize: 15, color: Colors.t1, marginBottom: 0,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip: {
     borderWidth: 1.5, borderColor: Colors.bdr,
     borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8,
     backgroundColor: Colors.bgSurf,
   },
-  chipTxt: { fontFamily: Fonts.bodyMd, fontSize: 13, color: Colors.t2 },
+  chipText: { fontFamily: Fonts.bodyMd, fontSize: 13, color: Colors.t2 },
 
-  installRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 4 },
-  installBtn: {
+  installmentsRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 4 },
+  installmentsButton: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.bgSurf, alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: Colors.bdr,
   },
-  installBtnTxt: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.t1, lineHeight: 26 },
-  installNum: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.t1, minWidth: 36, textAlign: 'center' },
+  installmentsButtonText: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.t1, lineHeight: 26 },
+  installmentsCount: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.t1, minWidth: 36, textAlign: 'center' },
 
-  saveBtn: { borderRadius: Radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 20, marginBottom: 8 },
-  saveTxt: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
+  saveButton: { borderRadius: Radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 20, marginBottom: 8 },
+  saveButtonText: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
 });

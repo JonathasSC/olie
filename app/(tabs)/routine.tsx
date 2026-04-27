@@ -1,28 +1,17 @@
 import React, { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Fonts, Radius, Shadow, TAB_HEIGHT } from '@/constants/design';
 
-import { useRoutine } from '@/features/routine/hooks/use-routine';
-import { ROUTINE_COLORS } from '@/features/routine/constants';
-import { getTodayDateLong } from '@/features/routine/utils/formatters';
-import { TaskCard } from '@/features/routine/components/task-card';
+import { ChoiceSheet } from '@/features/routine/components/choice-sheet';
 import { NoteCard } from '@/features/routine/components/note-card';
-import { TaskEditorModal } from '@/features/routine/components/task-editor-modal';
 import { NoteEditor } from '@/features/routine/components/note-editor';
+import { TaskCard } from '@/features/routine/components/task-card';
+import { TaskEditorModal } from '@/features/routine/components/task-editor-modal';
+import { useRoutine } from '@/features/routine/hooks/use-routine';
 import { NoteEditorState, TaskEditorState } from '@/features/routine/types';
+import { getTodayDateLong } from '@/features/routine/utils/formatters';
 
 export default function RoutineScreen() {
   const {
@@ -46,18 +35,27 @@ export default function RoutineScreen() {
 
   function handleCreateQuickTask() {
     if (!quickTaskTitle.trim()) return;
-    addTask(quickTaskTitle.trim(), today);
+    addTask({ title: quickTaskTitle.trim(), date: today, priority: 'normal', recurrence: 'none', reminderTime: null });
     setQuickTaskTitle('');
   }
 
+  function openTaskEditor() {
+    setIsChoiceOpen(false);
+    setTaskEditor({ isOpen: true, task: null });
+  }
+
+  function openNoteEditor() {
+    setIsChoiceOpen(false);
+    setNoteEditor({ isOpen: true, note: null });
+  }
+
   return (
-    <View style={s.screen}>
-      {/* Search header */}
-      <View style={s.searchWrap}>
-        <View style={s.searchBar}>
+    <View style={styles.screen}>
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchBar}>
           <IconSymbol name="magnifyingglass" size={16} color={Colors.t3} />
           <TextInput
-            style={s.searchInput}
+            style={styles.searchInput}
             placeholder="Buscar tarefas e notas..."
             placeholderTextColor={Colors.t3}
             value={search}
@@ -73,20 +71,19 @@ export default function RoutineScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={s.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Tasks section */}
-        <View style={s.secHdr}>
-          <Text style={s.secTitle}>Atividades</Text>
-          <Text style={s.secSub}>{getTodayDateLong()}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Atividades</Text>
+          <Text style={styles.sectionSubtitle}>{getTodayDateLong()}</Text>
         </View>
 
         {!search && (
-          <View style={s.quickAdd}>
+          <View style={styles.quickAddRow}>
             <TextInput
-              style={s.quickAddInput}
+              style={styles.quickAddInput}
               placeholder="Nova tarefa rápida..."
               placeholderTextColor={Colors.t3}
               value={quickTaskTitle}
@@ -96,7 +93,7 @@ export default function RoutineScreen() {
               blurOnSubmit={false}
             />
             {quickTaskTitle.trim().length > 0 && (
-              <TouchableOpacity onPress={handleCreateQuickTask} style={s.quickAddBtn}>
+              <TouchableOpacity onPress={handleCreateQuickTask} style={styles.quickAddButton}>
                 <IconSymbol name="plus.circle.fill" size={20} color={Colors.brand} />
               </TouchableOpacity>
             )}
@@ -104,44 +101,43 @@ export default function RoutineScreen() {
         )}
 
         {displayedTasks.length === 0 ? (
-          <View style={s.empty}>
+          <View style={styles.emptyState}>
             <IconSymbol name="checkmark.circle" size={32} color={Colors.bdr} />
-            <Text style={s.emptyTxt}>{search ? 'Nenhuma tarefa encontrada' : 'Nenhuma tarefa para hoje'}</Text>
+            <Text style={styles.emptyStateText}>{search ? 'Nenhuma tarefa encontrada' : 'Nenhuma tarefa para hoje'}</Text>
           </View>
         ) : (
-          displayedTasks.map((t) => (
+          displayedTasks.map((task) => (
             <TaskCard
-              key={t.id}
-              task={t}
-              onCycleStatus={() => cycleStatus(t)}
-              onEdit={() => setTaskEditor({ isOpen: true, task: t })}
-              onDelete={() => t.id && removeTask(t.id)}
+              key={task.id}
+              task={task}
+              onCycleStatus={() => cycleStatus(task)}
+              onEdit={() => setTaskEditor({ isOpen: true, task })}
+              onDelete={() => task.id && removeTask(task.id)}
               today={today}
             />
           ))
         )}
 
-        {/* Notes section */}
-        <View style={[s.secHdr, { marginTop: 24 }]}>
-          <Text style={s.secTitle}>Notas</Text>
-          <TouchableOpacity style={s.secAction} onPress={() => setNoteEditor({ isOpen: true, note: null })}>
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>Notas</Text>
+          <TouchableOpacity style={styles.sectionAction} onPress={() => setNoteEditor({ isOpen: true, note: null })}>
             <IconSymbol name="plus" size={14} color={Colors.brandLt} />
-            <Text style={s.secActionTxt}>Nova nota</Text>
+            <Text style={styles.sectionActionText}>Nova nota</Text>
           </TouchableOpacity>
         </View>
 
         {displayedNotes.length === 0 ? (
-          <View style={s.empty}>
+          <View style={styles.emptyState}>
             <IconSymbol name="note.text" size={32} color={Colors.bdr} />
-            <Text style={s.emptyTxt}>{search ? 'Nenhuma nota encontrada' : 'Nenhuma nota criada'}</Text>
+            <Text style={styles.emptyStateText}>{search ? 'Nenhuma nota encontrada' : 'Nenhuma nota criada'}</Text>
           </View>
         ) : (
-          displayedNotes.map((n) => (
+          displayedNotes.map((note) => (
             <NoteCard
-              key={n.id}
-              note={n}
-              onPress={() => setNoteEditor({ isOpen: true, note: n })}
-              onDelete={() => n.id && removeNote(n.id)}
+              key={note.id}
+              note={note}
+              onPress={() => setNoteEditor({ isOpen: true, note })}
+              onDelete={() => note.id && removeNote(note.id)}
             />
           ))
         )}
@@ -149,62 +145,20 @@ export default function RoutineScreen() {
         <View style={{ height: TAB_HEIGHT + 80 }} />
       </ScrollView>
 
-      {/* FAB */}
-      <View style={s.fabWrap}>
-        <TouchableOpacity style={s.fabBtn} activeOpacity={0.85} onPress={() => setIsChoiceOpen(true)}>
-          <IconSymbol name="plus" size={18} color="#fff" />
-          <Text style={s.fabTxt}>Criar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Choice sheet */}
-      <Modal visible={isChoiceOpen} animationType="slide" transparent onRequestClose={() => setIsChoiceOpen(false)}>
-        <TouchableWithoutFeedback onPress={() => setIsChoiceOpen(false)}>
-          <View style={s.overlay} />
-        </TouchableWithoutFeedback>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ justifyContent: 'flex-end' }}>
-          <View style={s.sheet}>
-            <View style={s.handle} />
-            <Text style={s.sheetTitle}>O que deseja criar?</Text>
-
-            <TouchableOpacity
-              style={[s.choiceCard, { borderColor: 'rgba(124,111,255,0.4)' }]}
-              onPress={() => { setIsChoiceOpen(false); setTaskEditor({ isOpen: true, task: null }); }}
-            >
-              <View style={[s.choiceIco, { backgroundColor: Colors.brandDim }]}>
-                <IconSymbol name="checkmark.circle.fill" size={26} color={Colors.brand} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.choiceCardTitle, { color: Colors.brandLt }]}>Nova Tarefa</Text>
-                <Text style={s.choiceCardSub}>Adicionar à rotina diária</Text>
-              </View>
-              <IconSymbol name="chevron.right" size={16} color={Colors.t3} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.choiceCard, { borderColor: 'rgba(245,185,78,0.35)' }]}
-              onPress={() => { setIsChoiceOpen(false); setNoteEditor({ isOpen: true, note: null }); }}
-            >
-              <View style={[s.choiceIco, { backgroundColor: Colors.noteSurf }]}>
-                <IconSymbol name="note.text" size={26} color={Colors.note} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.choiceCardTitle, { color: Colors.note }]}>Nova Nota</Text>
-                <Text style={s.choiceCardSub}>Capturar uma ideia ou informação</Text>
-              </View>
-              <IconSymbol name="chevron.right" size={16} color={Colors.t3} />
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <ChoiceSheet
+        visible={isChoiceOpen}
+        onClose={() => setIsChoiceOpen(false)}
+        onSelectTask={openTaskEditor}
+        onSelectNote={openNoteEditor}
+      />
 
       <TaskEditorModal
         state={taskEditor}
         today={today}
         onClose={() => setTaskEditor({ isOpen: false, task: null })}
-        onSave={(title, date, id) => {
-          if (id) editTask(id, title, date);
-          else addTask(title, date);
+        onSave={(data) => {
+          if (data.id) editTask(data);
+          else addTask(data);
         }}
       />
 
@@ -216,17 +170,24 @@ export default function RoutineScreen() {
         <NoteEditor
           note={noteEditor.note}
           onClose={() => setNoteEditor({ isOpen: false, note: null })}
-          onSave={(t, c, id) => saveNote(t, c, id)}
+          onSave={(title, content, id) => saveNote(title, content, id)}
         />
       </Modal>
+
+      <View style={styles.fabWrapper}>
+        <TouchableOpacity style={styles.fabButton} activeOpacity={0.85} onPress={() => setIsChoiceOpen(true)}>
+          <IconSymbol name="plus" size={18} color="#fff" />
+          <Text style={styles.fabText}>Criar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.bg },
 
-  searchWrap: { paddingTop: 54, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: Colors.bg },
+  searchWrapper: { paddingTop: 54, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: Colors.bg },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: Colors.bgCard, borderRadius: Radius.md,
@@ -235,50 +196,51 @@ const s = StyleSheet.create({
   },
   searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.t1 },
 
-  scroll: { paddingHorizontal: 16, paddingTop: 4 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4 },
 
-  secHdr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  secTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.t1, letterSpacing: -0.4 },
-  secSub: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
-  secAction: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  secActionTxt: { fontFamily: Fonts.bodySb, fontSize: 13, color: Colors.brandLt },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sectionTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.t1, letterSpacing: -0.4 },
+  sectionSubtitle: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.t3 },
+  sectionAction: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  sectionActionText: { fontFamily: Fonts.bodySb, fontSize: 13, color: Colors.brandLt },
 
-  quickAdd: {
+  quickAddRow: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.bgCard, borderRadius: Radius.md,
     paddingHorizontal: 14, paddingVertical: 2,
     marginBottom: 12, borderWidth: 1.5, borderColor: Colors.bdr,
   },
   quickAddInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.t1, paddingVertical: 13 },
-  quickAddBtn: { padding: 6 },
+  quickAddButton: { padding: 6 },
 
-  empty: { alignItems: 'center', paddingVertical: 32, gap: 8 },
-  emptyTxt: { fontFamily: Fonts.body, fontSize: 14, color: Colors.t3 },
+  emptyState: { 
+    alignItems: 'center',
+    paddingVertical: 32,
+    gap: 8
+  },
 
-  fabWrap: { position: 'absolute', bottom: TAB_HEIGHT + 14, left: 16, right: 16 },
-  fabBtn: {
-    backgroundColor: Colors.brand, borderRadius: Radius.md,
-    paddingVertical: 16, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center', gap: 8,
+  emptyStateText: { 
+    fontFamily: Fonts.body,
+    fontSize: 14,
+    color: Colors.t3 
+  },
+
+  fabWrapper: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 16 
+  },
+  
+  fabButton: {
+    gap: 8,
+    paddingVertical: 16, 
+    alignItems: 'center', 
+    flexDirection: 'row',
+    borderRadius: Radius.xs,
+    justifyContent: 'center', 
+    backgroundColor: Colors.brand, 
     ...Shadow.brand,
   },
-  fabTxt: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
-
-  overlay: { flex: 1, backgroundColor: Colors.overlay },
-  sheet: {
-    backgroundColor: Colors.bgCard, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
-    paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12,
-    borderTopWidth: 1, borderTopColor: Colors.bdr,
-  },
-  handle: { width: 36, height: 4, backgroundColor: Colors.bdr2, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  sheetTitle: { fontFamily: Fonts.display, fontSize: 22, color: Colors.t1, letterSpacing: -0.6, marginBottom: 18 },
-  choiceCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    padding: 16, borderRadius: Radius.md,
-    borderWidth: 1.5, marginBottom: 10,
-    backgroundColor: Colors.bgSurf,
-  },
-  choiceIco: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  choiceCardTitle: { fontFamily: Fonts.heading, fontSize: 16 },
-  choiceCardSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.t3, marginTop: 2 },
+  fabText: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
 });

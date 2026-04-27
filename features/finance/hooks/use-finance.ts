@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { ListItem, Period } from '../types';
 import { FinanceRepository } from '../services/finance-repository';
 import { FinanceService } from '../services/finance-service';
+import { StreakRepository } from '@/services/streak';
 
 export function useFinance() {
   const [items, setItems] = useState<ListItem[]>(() => FinanceRepository.listAll());
@@ -37,6 +38,7 @@ export function useFinance() {
     setIsSaving(true);
     try {
       FinanceRepository.addIncome(data);
+      StreakRepository.recordUsage();
       refresh();
       return true;
     } catch (e) {
@@ -51,6 +53,7 @@ export function useFinance() {
     setIsSaving(true);
     try {
       FinanceRepository.addExpense(data);
+      StreakRepository.recordUsage();
       refresh();
       return true;
     } catch (e) {

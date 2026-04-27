@@ -8,54 +8,69 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
-/**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
- */
 const MAPPING = {
   // navigation
-  'house.fill': 'home',
-  'paperplane.fill': 'send',
+  'house.fill':                            'home',
+  'chevron.right':                         'chevron-right',
+  'chevron.left':                          'chevron-left',
+  'chevron.down':                          'keyboard-arrow-down',
   'chevron.left.forwardslash.chevron.right': 'code',
-  'chevron.right': 'chevron-right',
-  'chevron.left': 'chevron-left',
-  'chevron.down': 'keyboard-arrow-down',
-  'xmark': 'close',
+  'xmark':                                 'close',
 
   // tabs
-  'calendar.fill': 'event',
-  'dollarsign.circle.fill': 'account-balance-wallet',
-  'list.bullet': 'format-list-bulleted',
+  'checkmark.circle.fill':                 'check-circle',
+  'wallet.pass.fill':                      'account-balance-wallet',
+  'calendar.fill':                         'event',
+  'list.bullet':                           'format-list-bulleted',
 
   // actions
-  'plus': 'add',
-  'square.and.pencil': 'edit',
-  'trash': 'delete',
+  'plus':                                  'add',
+  'plus.circle.fill':                      'add-circle',
+  'pencil':                                'edit',
+  'square.and.pencil':                     'edit',
+  'trash':                                 'delete',
+  'paperplane.fill':                       'send',
+  'square.and.arrow.up':                   'file-upload',
+  'square.and.arrow.down':                 'file-download',
+  'gearshape.fill':                        'settings',
+
+  // status / feedback
+  'checkmark':                             'check',
+  'checkmark.circle':                      'check-circle-outline',
+  'wallet.pass':                           'account-balance-wallet',
 
   // search
-  'magnifyingglass': 'search',
+  'magnifyingglass':                       'search',
+
+  // finance
+  'arrow.up':                              'arrow-upward',
+  'arrow.down':                            'arrow-downward',
+  'banknote.fill':                         'payments',
+  'dollarsign.circle.fill':               'attach-money',
+  'cart.fill':                             'shopping-cart',
 
   // insights / misc
-  'lightbulb.fill': 'lightbulb',
-  'note.text': 'description',
-  'clock.fill': 'schedule',
+  'lightbulb.fill':                        'lightbulb',
+  'note.text':                             'description',
+  'clock.fill':                            'schedule',
+  'person.fill':                           'person',
+  'repeat':                                'repeat',
 
-  // categorias de gasto
-  'fork.knife': 'restaurant',
-  'car.fill': 'directions-car',
-  'doc.text.fill': 'receipt',
-  'sparkles': 'auto-awesome',
+  // expense categories
+  'fork.knife':                            'restaurant',
+  'car.fill':                              'directions-car',
+  'doc.text.fill':                         'receipt',
+  'sparkles':                              'auto-awesome',
+  'heart.fill':                            'favorite',
+  'antenna.radiowaves.left.and.right':     'rss-feed',
+  'ellipsis.circle.fill':                  'more-horiz',
 
-  // categorias de ganho
-  'briefcase.fill': 'work',
-  'laptopcomputer': 'laptop',
-  'gift.fill': 'card-giftcard',
+  // income categories
+  'briefcase.fill':                        'work',
+  'laptopcomputer':                        'laptop',
+  'gift.fill':                             'card-giftcard',
 } as unknown as IconMapping;
 
-/**
- * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- */
 export function IconSymbol({
   name,
   size = 24,

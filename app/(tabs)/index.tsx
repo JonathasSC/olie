@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Fonts, Radius, Shadow, TAB_HEIGHT } from '@/constants/design';
+import { Colors, Fonts, Radius, TAB_HEIGHT } from '@/constants/design';
+import { CATEGORY_ICONS, CategoryIcon } from '@/features/finance/constants';
+import { ListItem } from '@/features/finance/types';
+import { formatCurrency } from '@/features/finance/utils/formatters';
+import { STATUS_COLOR } from '@/features/routine/constants';
+import { Task } from '@/features/routine/types';
+import { useHome } from '@/hooks/use-home';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -24,11 +25,7 @@ function getWeekDays() {
   for (let i = -3; i <= 3; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    days.push({
-      letter: dayLetters[d.getDay()],
-      num: d.getDate(),
-      isToday: i === 0,
-    });
+    days.push({ letter: dayLetters[d.getDay()], num: d.getDate(), isToday: i === 0 });
   }
   return days;
 }
@@ -37,142 +34,184 @@ export default function InicioScreen() {
   const [greeting, setGreeting] = useState(getGreeting());
   const weekDays = getWeekDays();
 
+  const { todayTasks, monthSummary, recentTransactions, streak, refresh } = useHome();
+  const { balance, totalIncomes, totalExpenses } = monthSummary;
+  const savingsRate = totalIncomes > 0
+    ? Math.round(((totalIncomes - totalExpenses) / totalIncomes) * 100)
+    : 0;
+
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
   useEffect(() => {
     const id = setInterval(() => setGreeting(getGreeting()), 60_000);
     return () => clearInterval(id);
   }, []);
 
+  const visibleTasks = todayTasks.slice(0, 3);
+  const extraTasksCount = Math.max(0, todayTasks.length - 3);
+
   return (
-    <View style={s.screen}>
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={s.header}>
-          <Text style={s.greeting}>{greeting}</Text>
-          <Text style={s.greetingName}>João 👋</Text>
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.greeting}>{greeting}</Text>
+          <Text style={styles.greetingName}>Jonathas</Text>
         </View>
 
-        {/* Week strip */}
-        <View style={s.weekStrip}>
+        <View style={styles.weekStrip}>
           {weekDays.map((d, i) => (
-            <View key={i} style={[s.weekDay, d.isToday && s.weekDayToday]}>
-              <Text style={[s.weekDayLetter, d.isToday && s.weekDayLetterToday]}>{d.letter}</Text>
-              <Text style={[s.weekDayNum, d.isToday && s.weekDayNumToday]}>{d.num}</Text>
-              <View style={[s.weekDot, { backgroundColor: d.isToday ? Colors.brand : 'transparent' }]} />
+            <View key={i} style={[styles.weekDay, d.isToday && styles.weekDayToday]}>
+              <Text style={[styles.weekDayLetter, d.isToday && styles.weekDayLetterToday]}>{d.letter}</Text>
+              <Text style={[styles.weekDayNum, d.isToday && styles.weekDayNumToday]}>{d.num}</Text>
+              <View style={[styles.weekDot, { backgroundColor: d.isToday ? Colors.brand : 'transparent' }]} />
             </View>
           ))}
         </View>
 
-        {/* Balance card */}
-        <View style={s.balanceCard}>
-          <View style={s.balanceCardGlow} />
-          <Text style={s.balanceLbl}>Saldo do mês</Text>
-          <Text style={s.balanceAmount}>
-            R$ 4.820<Text style={s.balanceCents}>,50</Text>
-          </Text>
-          <View style={s.statsRow}>
-            <View style={s.statBlock}>
-              <Text style={[s.statVal, { color: Colors.income }]}>R$ 7.200</Text>
-              <View style={s.statLbl}>
+        {streak.currentStreak > 0 && (
+          <View style={styles.streakCard}>
+            <Text style={styles.streakFire}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.streakValue}>{streak.currentStreak} dia{streak.currentStreak !== 1 ? 's' : ''} seguidos</Text>
+              <Text style={styles.streakSub}>Melhor: {streak.bestStreak} dia{streak.bestStreak !== 1 ? 's' : ''}</Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.balanceCard}>
+          <View style={styles.balanceCardGlow} />
+          <Text style={styles.balanceLbl}>Saldo do mês</Text>
+          <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statBlock}>
+              <Text style={[styles.statVal, { color: Colors.income }]}>{formatCurrency(totalIncomes)}</Text>
+              <View style={styles.statLbl}>
                 <IconSymbol name="arrow.up" size={12} color={Colors.income} />
-                <Text style={s.statLblTxt}>Receitas</Text>
+                <Text style={styles.statLblTxt}>Receitas</Text>
               </View>
             </View>
-            <View style={s.statBlock}>
-              <Text style={[s.statVal, { color: Colors.expense }]}>R$ 2.380</Text>
-              <View style={s.statLbl}>
+            <View style={styles.statBlock}>
+              <Text style={[styles.statVal, { color: Colors.expense }]}>{formatCurrency(totalExpenses)}</Text>
+              <View style={styles.statLbl}>
                 <IconSymbol name="arrow.down" size={12} color={Colors.expense} />
-                <Text style={s.statLblTxt}>Despesas</Text>
+                <Text style={styles.statLblTxt}>Despesas</Text>
               </View>
             </View>
-            <View style={s.statBlock}>
-              <Text style={[s.statVal, { color: Colors.brandLt }]}>67%</Text>
-              <View style={s.statLbl}>
+            <View style={styles.statBlock}>
+              <Text style={[styles.statVal, { color: Colors.brandLt }]}>{savingsRate}%</Text>
+              <View style={styles.statLbl}>
                 <IconSymbol name="banknote.fill" size={12} color={Colors.brandLt} />
-                <Text style={s.statLblTxt}>Poupança</Text>
+                <Text style={styles.statLblTxt}>Poupança</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Today tasks */}
-        <View style={s.homeCard}>
-          <View style={s.homeCardHdr}>
-            <Text style={s.homeCardTitle}>TAREFAS DE HOJE</Text>
-            <TouchableOpacity style={s.secAction} onPress={() => router.replace('/routine')}>
+        <View style={styles.homeCard}>
+          <View style={styles.homeCardHdr}>
+            <Text style={styles.homeCardTitle}>TAREFAS DE HOJE</Text>
+            <TouchableOpacity style={styles.secAction} onPress={() => router.replace('/routine')}>
               <IconSymbol name="checkmark.circle.fill" size={14} color={Colors.brandLt} />
-              <Text style={s.secActionTxt}>Ver tudo</Text>
+              <Text style={styles.secActionTxt}>Ver tudo</Text>
             </TouchableOpacity>
           </View>
-          <MiniTask done title="Revisar relatório mensal" />
-          <MiniTask progress title="Reunião com equipe às 15h" />
-          <MiniTask title="Pagar contas do mês" last />
+
+          {visibleTasks.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyCardTxt}>Nenhuma tarefa para hoje</Text>
+            </View>
+          ) : (
+            <>
+              {visibleTasks.map((task, i) => (
+                <MiniTask
+                  key={task.id ?? i}
+                  task={task}
+                  isLast={i === visibleTasks.length - 1 && extraTasksCount === 0}
+                />
+              ))}
+              {extraTasksCount > 0 && (
+                <TouchableOpacity onPress={() => router.replace('/routine')} style={styles.extraRow}>
+                  <Text style={styles.extraTxt}>+{extraTasksCount} mais tarefa{extraTasksCount > 1 ? 's' : ''}</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </View>
 
-        {/* Recent transactions */}
-        <View style={[s.homeCard, { marginBottom: 0 }]}>
-          <View style={s.homeCardHdr}>
-            <Text style={s.homeCardTitle}>ÚLTIMAS MOVIMENTAÇÕES</Text>
-            <TouchableOpacity style={s.secAction} onPress={() => router.replace('/finance')}>
+        <View style={[styles.homeCard, { marginBottom: 0 }]}>
+          <View style={styles.homeCardHdr}>
+            <Text style={styles.homeCardTitle}>ÚLTIMAS MOVIMENTAÇÕES</Text>
+            <TouchableOpacity style={styles.secAction} onPress={() => router.replace('/finance')}>
               <IconSymbol name="wallet.pass.fill" size={14} color={Colors.brandLt} />
-              <Text style={s.secActionTxt}>Ver tudo</Text>
+              <Text style={styles.secActionTxt}>Ver tudo</Text>
             </TouchableOpacity>
           </View>
-          <MiniTransaction icon="briefcase.fill" name="Salário" meta="25 abr · Conta" amount="+R$ 5.000" isIncome />
-          <MiniTransaction icon="cart.fill" name="Supermercado" meta="24 abr · Débito" amount="-R$ 340" last />
+
+          {recentTransactions.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyCardTxt}>Nenhuma movimentação registrada</Text>
+            </View>
+          ) : (
+            recentTransactions.map((item, i) => (
+              <MiniTransaction
+                key={`${item.type}-${item.id ?? i}`}
+                item={item}
+                isLast={i === recentTransactions.length - 1}
+              />
+            ))
+          )}
         </View>
 
         <View style={{ height: TAB_HEIGHT + 80 }} />
       </ScrollView>
-
-      {/* FAB */}
-      <View style={s.fabWrap}>
-        <TouchableOpacity style={s.fabBtn} activeOpacity={0.85} onPress={() => router.replace('/routine')}>
-          <IconSymbol name="plus" size={18} color="#fff" />
-          <Text style={s.fabTxt}>Criar</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
 
-function MiniTask({ title, done, progress, last }: { title: string; done?: boolean; progress?: boolean; last?: boolean }) {
-  const checkBg = done ? Colors.income : progress ? 'rgba(245,185,78,0.12)' : 'transparent';
-  const checkBorder = done ? Colors.income : progress ? Colors.note : Colors.t3;
+function MiniTask({ task, isLast }: { task: Task; isLast: boolean }) {
+  const isDone = task.status === 'completed';
+  const isDoing = task.status === 'doing';
+  const borderColor = STATUS_COLOR[task.status];
+  const checkBg = isDone ? Colors.income : isDoing ? 'rgba(245,185,78,0.12)' : 'transparent';
+
   return (
-    <View style={[s.miniTask, !last && s.miniTaskBorder]}>
-      <View style={[s.miniCheck, { backgroundColor: checkBg, borderColor: checkBorder, borderWidth: done ? 0 : 1.5 }]}>
-        {done && <IconSymbol name="checkmark" size={10} color="#fff" />}
-        {progress && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.note }} />}
+    <View style={[styles.miniTask, !isLast && styles.miniTaskBorder]}>
+      <View style={[styles.miniCheck, { backgroundColor: checkBg, borderColor, borderWidth: isDone ? 0 : 1.5 }]}>
+        {isDone && <IconSymbol name="checkmark" size={10} color="#fff" />}
+        {isDoing && <View style={styles.miniCheckDot} />}
       </View>
-      <Text style={[s.miniTaskText, done && s.miniTaskTextDone]}>{title}</Text>
-      {progress && <IconSymbol name="clock.fill" size={14} color={Colors.note} />}
+      <Text style={[styles.miniTaskText, isDone && styles.miniTaskTextDone]} numberOfLines={1}>
+        {task.title}
+      </Text>
+      {isDoing && <IconSymbol name="clock.fill" size={14} color={Colors.note} />}
     </View>
   );
 }
 
-function MiniTransaction({ icon, name, meta, amount, isIncome, last }: {
-  icon: any; name: string; meta: string; amount: string; isIncome?: boolean; last?: boolean;
-}) {
+function MiniTransaction({ item, isLast }: { item: ListItem; isLast: boolean }) {
+  const isIncome = item.type === 'income';
   const color = isIncome ? Colors.income : Colors.expense;
   const bg = isIncome ? Colors.incomeSurf : Colors.expenseSurf;
+  const icon = (CATEGORY_ICONS[item.category] ?? 'dollarsign.circle.fill') as CategoryIcon;
+  const dateLabel = isIncome ? item.date : item.purchase_date;
+
   return (
-    <View style={[s.miniTxn, !last && { marginBottom: 6 }]}>
-      <View style={[s.miniTxnIcon, { backgroundColor: bg }]}>
+    <View style={[styles.miniTxn, !isLast && styles.miniTxnBorder]}>
+      <View style={[styles.miniTxnIcon, { backgroundColor: bg }]}>
         <IconSymbol name={icon} size={16} color={color} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={s.miniTxnName}>{name}</Text>
-        <Text style={s.miniTxnMeta}>{meta}</Text>
+        <Text style={styles.miniTxnName}>{item.category}</Text>
+        <Text style={styles.miniTxnMeta}>{item.payment_type} · {dateLabel}</Text>
       </View>
-      <Text style={[s.miniTxnAmt, { color }]}>{amount}</Text>
+      <Text style={[styles.miniTxnAmt, { color }]}>
+        {isIncome ? '+' : '−'}{formatCurrency(item.amount)}
+      </Text>
     </View>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.bg },
   scroll: { paddingHorizontal: 16 },
 
@@ -189,16 +228,19 @@ const s = StyleSheet.create({
   weekDayNumToday: { color: Colors.brandLt },
   weekDot: { width: 4, height: 4, borderRadius: 2 },
 
+  streakCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: Colors.bgCard, borderRadius: Radius.md,
+    paddingHorizontal: 14, paddingVertical: 12,
+    marginBottom: 12, borderWidth: 1, borderColor: 'rgba(245,185,78,0.20)',
+  },
+  streakFire: { fontSize: 22 },
+  streakValue: { fontFamily: Fonts.heading, fontSize: 14, color: Colors.t1 },
+  streakSub: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, marginTop: 1 },
+
   balanceCard: {
-    backgroundColor: Colors.bgCard,
-    borderRadius: Radius.lg,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(124,111,255,0.22)',
-    marginBottom: 14,
-    overflow: 'hidden',
-    // gradient via tint on bg
-    backgroundImage: undefined,
+    backgroundColor: Colors.bgCard, borderRadius: Radius.lg, padding: 22,
+    borderWidth: 1, borderColor: 'rgba(124,111,255,0.22)', marginBottom: 14, overflow: 'hidden',
   },
   balanceCardGlow: {
     position: 'absolute', top: -60, right: -60,
@@ -207,7 +249,6 @@ const s = StyleSheet.create({
   },
   balanceLbl: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6 },
   balanceAmount: { fontFamily: Fonts.display, fontSize: 40, color: Colors.t1, letterSpacing: -2, lineHeight: 44, marginBottom: 18 },
-  balanceCents: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.t2 },
   statsRow: { flexDirection: 'row', gap: 8 },
   statBlock: {
     flex: 1, backgroundColor: 'rgba(255,255,255,0.05)',
@@ -227,24 +268,23 @@ const s = StyleSheet.create({
   secAction: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   secActionTxt: { fontFamily: Fonts.bodySb, fontSize: 13, color: Colors.brandLt },
 
-  miniTask: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  emptyCard: { paddingVertical: 10, alignItems: 'center' },
+  emptyCardTxt: { fontFamily: Fonts.body, fontSize: 13, color: Colors.t3 },
+
+  miniTask: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9 },
   miniTaskBorder: { borderBottomWidth: 1, borderBottomColor: Colors.bdr },
   miniCheck: { width: 18, height: 18, borderRadius: 9, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+  miniCheckDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.note },
   miniTaskText: { flex: 1, fontFamily: Fonts.bodyMd, fontSize: 13, color: Colors.t1 },
   miniTaskTextDone: { color: Colors.t3, textDecorationLine: 'line-through' },
 
-  miniTxn: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  extraRow: { paddingTop: 8 },
+  extraTxt: { fontFamily: Fonts.bodySb, fontSize: 12, color: Colors.brandLt },
+
+  miniTxn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
+  miniTxnBorder: { borderBottomWidth: 1, borderBottomColor: Colors.bdr },
   miniTxnIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   miniTxnName: { fontFamily: Fonts.bodySb, fontSize: 13, color: Colors.t1 },
   miniTxnMeta: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, marginTop: 1 },
   miniTxnAmt: { fontFamily: Fonts.heading, fontSize: 13 },
-
-  fabWrap: { position: 'absolute', bottom: 14, left: 16, right: 16 },
-  fabBtn: {
-    backgroundColor: Colors.brand, borderRadius: Radius.md,
-    paddingVertical: 16, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center', gap: 8,
-    ...Shadow.brand,
-  },
-  fabTxt: { fontFamily: Fonts.display, fontSize: 16, color: '#fff', letterSpacing: -0.2 },
 });
