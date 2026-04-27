@@ -1,5 +1,6 @@
 import { getDatabase } from '@/services/db';
 import * as repository from '@/services/db/repository';
+import { StreakRepository } from '@/services/streak';
 import { Note, Task, TaskPriority, TaskRecurrence, TaskStatus } from '../types';
 
 function shouldRecurToday(template: Task, today: string): boolean {
@@ -61,6 +62,9 @@ export const RoutineRepository = {
 
   updateTaskStatus(id: number, status: TaskStatus): void {
     repository.update('tasks', id, { status });
+    if (status === 'completed') {
+      StreakRepository.recordUsage();
+    }
   },
 
   updateNotificationId(id: number, notificationId: string | null): void {

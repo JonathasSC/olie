@@ -55,6 +55,8 @@ const MAPPING = {
   'clock.fill':                            'schedule',
   'person.fill':                           'person',
   'repeat':                                'repeat',
+  'flame.fill':                            'whatshot',
+  'trophy.fill':                           'emoji-events',
 
   // expense categories
   'fork.knife':                            'restaurant',

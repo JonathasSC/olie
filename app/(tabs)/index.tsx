@@ -68,15 +68,27 @@ export default function InicioScreen() {
           ))}
         </View>
 
-        {streak.currentStreak > 0 && (
-          <View style={styles.streakCard}>
-            <Text style={styles.streakFire}>🔥</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.streakValue}>{streak.currentStreak} dia{streak.currentStreak !== 1 ? 's' : ''} seguidos</Text>
-              <Text style={styles.streakSub}>Melhor: {streak.bestStreak} dia{streak.bestStreak !== 1 ? 's' : ''}</Text>
+        <View style={styles.streakCard}>
+          <View style={styles.streakBlock}>
+            <View style={styles.streakInfo}>
+              <IconSymbol name="flame.fill" size={24} color={Colors.note} />
+              <View>
+                <Text style={styles.streakValue}>{streak.currentStreak}</Text>
+                <Text style={styles.streakLabel}>RECORDE ATUAL</Text>
+              </View>
             </View>
           </View>
-        )}
+          <View style={styles.streakDivider} />
+          <View style={styles.streakBlock}>
+            <View style={styles.streakInfo}>
+              <IconSymbol name="trophy.fill" size={20} color={Colors.brand} />
+              <View>
+                <Text style={styles.streakValue}>{streak.bestStreak}</Text>
+                <Text style={styles.streakLabel}>MELHOR RECORDE</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
         <View style={styles.balanceCard}>
           <View style={styles.balanceCardGlow} />
@@ -229,14 +241,43 @@ const styles = StyleSheet.create({
   weekDot: { width: 4, height: 4, borderRadius: 2 },
 
   streakCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: Colors.bgCard, borderRadius: Radius.md,
-    paddingHorizontal: 14, paddingVertical: 12,
-    marginBottom: 12, borderWidth: 1, borderColor: 'rgba(245,185,78,0.20)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.bgCard,
+    borderRadius: Radius.lg,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: Colors.bdr,
   },
-  streakFire: { fontSize: 22 },
-  streakValue: { fontFamily: Fonts.heading, fontSize: 14, color: Colors.t1 },
-  streakSub: { fontFamily: Fonts.mono, fontSize: 10, color: Colors.t3, marginTop: 1 },
+  streakBlock: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  streakDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.bdr,
+    marginHorizontal: 8,
+  },
+  streakValue: {
+    fontFamily: Fonts.display,
+    fontSize: 20,
+    color: Colors.t1,
+    lineHeight: 22,
+  },
+  streakLabel: {
+    fontFamily: Fonts.mono,
+    fontSize: 8,
+    color: Colors.t3,
+    letterSpacing: 0.5,
+  },
 
   balanceCard: {
     backgroundColor: Colors.bgCard, borderRadius: Radius.lg, padding: 22,
