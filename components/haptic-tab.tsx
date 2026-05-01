@@ -1,10 +1,11 @@
 import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring 
+
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 
 export function HapticTab(props: BottomTabBarButtonProps) {
@@ -15,7 +16,6 @@ export function HapticTab(props: BottomTabBarButtonProps) {
   }));
 
   const handlePressIn = (ev: any) => {
-    // Haptics funciona em Android e iOS se o dispositivo suportar
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     scale.value = withSpring(0.90, { 

@@ -1,65 +1,27 @@
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { router, Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts } from 'expo-font';
-import { useEffect } from 'react';
-import * as Notifications from 'expo-notifications';
-import { NotificationService } from '@/services/notifications';
-import {
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-  PlusJakartaSans_500Medium,
-} from '@expo-google-fonts/plus-jakarta-sans';
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-  DMSans_800ExtraBold,
-} from '@expo-google-fonts/dm-sans';
-import {
-  DMMono_400Regular,
-  DMMono_500Medium,
-} from '@expo-google-fonts/dm-mono';
 import 'react-native-reanimated';
+
+import { useColorScheme } from 'react-native';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  useEffect(() => { NotificationService.requestPermissions(); }, []);
-
-  useEffect(() => {
-    // Navigate to the routine tab when the user taps any reminder notification
-    const sub = Notifications.addNotificationResponseReceivedListener(() => {
-      router.replace('/routine');
-    });
-    return () => sub.remove();
-  }, []);
-
-  const [fontsLoaded] = useFonts({
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
-    PlusJakartaSans_500Medium,
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
-    DMSans_700Bold,
-    DMSans_800ExtraBold,
-    DMMono_400Regular,
-    DMMono_500Medium,
-  });
-
-  if (!fontsLoaded) return null;
+  const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={DarkTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="task-editor" options={{ headerShown: false }} />
+        <Stack.Screen name="note-editor" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style="auto" />
     </ThemeProvider>
   );
 }

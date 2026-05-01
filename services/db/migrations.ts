@@ -108,6 +108,24 @@ const ALL_MIGRATIONS: Migration[] = [
     },
   },
 
+  {
+    version: 2,
+    description: 'profile: create profile table with first_name, last_name, email',
+    up(db) {
+      db.execSync(`CREATE TABLE IF NOT EXISTS profile (
+        id         INTEGER PRIMARY KEY,
+        first_name TEXT NOT NULL DEFAULT '',
+        last_name  TEXT NOT NULL DEFAULT '',
+        email      TEXT NOT NULL DEFAULT ''
+      )`);
+      db.execSync(`INSERT OR IGNORE INTO profile (id, first_name, last_name, email) VALUES (1, '', '', '')`);
+    },
+    verify(db) {
+      const cols = tableColumns(db, 'profile');
+      return cols.has('first_name') && cols.has('last_name') && cols.has('email');
+    },
+  },
+
 ];
 
 // ─── Runner ───────────────────────────────────────────────────────────────────

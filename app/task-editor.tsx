@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -9,20 +10,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
-import ScreenHeader from '@/components/screen-header';
-import { PRIORITY_LABEL, RECURRENCE_LABEL } from '../constants';
-import { TaskEditorState, TaskPriority, TaskRecurrence, TaskSaveData } from '../types';
-import { maskDate, maskTime } from '../utils/formatters';
-
-interface TaskEditorModalProps {
-  state: TaskEditorState;
-  today: string;
-  onClose: () => void;
-  onSave: (data: TaskSaveData) => void;
-}
+import ScreenHeader from '../components/screen-header';
+import { PRIORITY_LABEL, RECURRENCE_LABEL } from '../features/routine/constants';
+import { RoutineRepository } from '../features/routine/services/routine-repository';
+import { TaskPriority, TaskRecurrence } from '../features/routine/types';
+import { getTodayDate, maskDate, maskTime } from '../features/routine/utils/formatters';
 
 const PRIORITIES: TaskPriority[] = ['low', 'normal', 'high'];
 const RECURRENCES: TaskRecurrence[] = ['none', 'daily', 'weekly', 'monthly'];
@@ -33,49 +28,44 @@ const PRIORITY_COLOR: Record<TaskPriority, string> = {
   high: '#ff6e6e',
 };
 
-export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorModalProps) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(today);
-  const [priority, setPriority] = useState<TaskPriority>('normal');
-  const [recurrence, setRecurrence] = useState<TaskRecurrence>('none');
-  const [reminderTime, setReminderTime] = useState('');
+export default function TaskEditorScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const task = id ? RoutineRepository.listAllTasks().find((t) => t.id === Number(id)) : undefined;
+  const today = getTodayDate();
 
-  useEffect(() => {
-    if (state.isOpen) {
-      setTitle(state.task?.title ?? '');
-      setDate(state.task?.date ?? today);
-      setPriority(state.task?.priority ?? 'normal');
-      setRecurrence(state.task?.recurrence ?? 'none');
-      setReminderTime(state.task?.reminder_time ?? '');
-    }
-  }, [state.isOpen, state.task, today]);
+  const [title, setTitle] = useState(task?.title ?? '');
+  const [date, setDate] = useState(task?.date ?? today);
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'normal');
+  const [recurrence, setRecurrence] = useState<TaskRecurrence>(task?.recurrence ?? 'none');
+  const [reminderTime, setReminderTime] = useState(task?.reminder_time ?? '');
 
   function handleSave() {
     if (!title.trim()) return Alert.alert('Atenção', 'Informe o título da tarefa.');
-    onSave({
+    const data = {
       title: title.trim(),
       date,
       priority,
       recurrence,
-      reminderTime: reminderTime.length === 5 ? reminderTime : null,
-      id: state.task?.id,
-    });
-    onClose();
+      reminder_time: reminderTime.length === 5 ? reminderTime : null,
+    };
+    if (task?.id) {
+      RoutineRepository.updateTask(task.id, data);
+    } else {
+      RoutineRepository.insertTask({ ...data, status: 'pending' });
+    }
+    router.back();
   }
 
-  const saveActionRight = (
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.85}>
-          <Ionicons name="checkmark-sharp" style={styles.saveButtonIcon} size={22} color="#fff" />
-      </TouchableOpacity>
-  )
+  const saveAction = (
+    <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.85}>
+      <Ionicons name="checkmark-sharp" size={22} color="#fff" />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
-        <ScreenHeader rightAction={saveActionRight} title={state.task ? 'Editar Tarefa' : 'Nova Tarefa'}/>
-
-        <View style={styles.divider} />
+        <ScreenHeader title={task ? 'Editar Tarefa' : 'Nova Tarefa'} rightAction={saveAction} />
 
         <ScrollView
           style={styles.scroll}
@@ -90,7 +80,7 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
             placeholderTextColor="#aaa"
             value={title}
             onChangeText={setTitle}
-            autoFocus={!state.task}
+            autoFocus={!task}
             returnKeyType="done"
           />
 
@@ -101,7 +91,7 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
             placeholderTextColor="#aaa"
             keyboardType="numeric"
             value={date}
-            onChangeText={(text) => setDate(maskDate(text))}
+            onChangeText={(v) => setDate(maskDate(v))}
             maxLength={10}
           />
 
@@ -152,7 +142,7 @@ export function TaskEditorModal({ state, today, onClose, onSave }: TaskEditorMod
             placeholderTextColor="#aaa"
             keyboardType="numeric"
             value={reminderTime}
-            onChangeText={(text) => setReminderTime(maskTime(text))}
+            onChangeText={(v) => setReminderTime(maskTime(v))}
             maxLength={5}
           />
         </ScrollView>
@@ -165,43 +155,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  closeButton: {
-    minWidth: 60,
-    alignItems: 'flex-start',
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#8a8a8a',
-  },
-  saveButton: {
-    backgroundColor: '#000',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    minWidth: 60,
-    alignItems: 'center',
-  },
-  saveButtonIcon:{
-    fontWeight: '900'
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
   },
   scroll: {
     flex: 1,
@@ -260,5 +213,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  saveButton: {
+    backgroundColor: '#000',
+    borderRadius: 999,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

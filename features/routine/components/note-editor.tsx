@@ -1,17 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Fonts, Radius, Shadow } from '@/constants/design';
+import { Colors, Fonts, Radius } from '../../../constants/design';
 import { Note } from '../types';
 
 interface NoteEditorProps {
@@ -25,11 +24,11 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
   const [content, setContent] = useState(note?.content ?? '');
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerCloseButton}>
-            <IconSymbol name="xmark" size={20} color={Colors.t2} />
+            <Ionicons name="logo-markdown" size={20} color={Colors.t2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{note ? 'Editar nota' : 'Nova nota'}</Text>
           <TouchableOpacity
@@ -69,7 +68,7 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
           />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

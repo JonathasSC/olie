@@ -1,7 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Fonts, Radius } from '@/constants/design';
+import { Colors, Fonts, Radius } from '../../../constants/design';
 import { FinanceSummary } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
@@ -22,21 +22,21 @@ export function SummaryCard({ summary }: SummaryCardProps) {
         <View style={styles.statBlock}>
           <Text style={[styles.statValue, { color: Colors.income }]}>{formatCurrency(totalIncomes)}</Text>
           <View style={styles.statLabel}>
-            <IconSymbol name="arrow.up" size={12} color={Colors.income} />
+            <Ionicons name="arrow-up" size={12} color={Colors.income} />
             <Text style={styles.statLabelText}>Receitas</Text>
           </View>
         </View>
         <View style={styles.statBlock}>
           <Text style={[styles.statValue, { color: Colors.expense }]}>{formatCurrency(totalExpenses)}</Text>
           <View style={styles.statLabel}>
-            <IconSymbol name="arrow.down" size={12} color={Colors.expense} />
+            <Ionicons name="arrow-down" size={12} color={Colors.expense} />
             <Text style={styles.statLabelText}>Despesas</Text>
           </View>
         </View>
         <View style={styles.statBlock}>
           <Text style={[styles.statValue, { color: Colors.brandLt }]}>{savingsRate}%</Text>
           <View style={styles.statLabel}>
-            <IconSymbol name="banknote.fill" size={12} color={Colors.brandLt} />
+            <Ionicons name='cash' size={12} color={Colors.brandLt} />
             <Text style={styles.statLabelText}>Poupança</Text>
           </View>
         </View>
