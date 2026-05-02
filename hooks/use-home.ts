@@ -15,6 +15,7 @@ export interface HomeData {
   todayTasks: Task[];
   monthSummary: FinanceSummary;
   recentTransactions: ListItem[];
+  weeklyExpenses: Array<{ x: string; y: number }>;
   streak: StreakData;
   refresh: () => void;
 }
@@ -55,5 +56,10 @@ export function useHome(): HomeData {
     [allItems]
   );
 
-  return { today, todayTasks, monthSummary, recentTransactions, streak, refresh };
+  const weeklyExpenses = useMemo(
+    () => FinanceService.getDailyExpenses(allItems),
+    [allItems]
+  );
+
+  return { today, todayTasks, monthSummary, recentTransactions, weeklyExpenses, streak, refresh };
 }

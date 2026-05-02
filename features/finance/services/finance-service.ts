@@ -1,4 +1,5 @@
-import { FinanceGroup, ListItem, Period, FinanceSummary } from '../types';
+import { INVESTMENT_CATEGORIES } from '../constants/finance-form-config';
+import { FinanceGroup, FinanceSummary, ListItem, Period } from '../types';
 import { startOfDay, getItemDate, parseDMY } from '../utils/formatters';
 
 export const FinanceService = {
@@ -36,16 +37,14 @@ export const FinanceService = {
       const day = startOfDay(d);
       const t = day.getTime();
 
+      const dd = String(day.getDate()).padStart(2, '0');
+      const mm = String(day.getMonth() + 1).padStart(2, '0');
+      const sortKey = `${day.getFullYear()}-${mm}-${dd}`;
+
       let label: string;
-      let sortKey: string;
-      if (t === today.getTime()) { label = 'Hoje'; sortKey = 'z_today'; }
-      else if (t === yesterday.getTime()) { label = 'Ontem'; sortKey = 'z_yesterday'; }
-      else {
-        const dd = String(day.getDate()).padStart(2, '0');
-        const mm = String(day.getMonth() + 1).padStart(2, '0');
-        label = `${dd}/${mm}/${day.getFullYear()}`;
-        sortKey = `${day.getFullYear()}-${mm}-${dd}`;
-      }
+      if (t === today.getTime()) { label = 'Hoje'; }
+      else if (t === yesterday.getTime()) { label = 'Ontem'; }
+      else { label = `${dd}/${mm}/${day.getFullYear()}`; }
 
       if (!map.has(sortKey)) map.set(sortKey, { label, sortKey, items: [] });
       map.get(sortKey)!.items.push(item);
@@ -55,19 +54,58 @@ export const FinanceService = {
   },
 
   calculateSummary(items: ListItem[]): FinanceSummary {
-    const totalIncomes = items
-      .filter((i) => i.type === 'income')
-      .reduce((s, i) => s + i.amount, 0);
-    
-    const totalExpenses = items
-      .filter((i) => i.type === 'expense')
-      .reduce((s, i) => s + i.amount, 0);
+    const investmentSet = new Set<string>(INVESTMENT_CATEGORIES);
+
+    let totalIncomes = 0;
+    let totalInvestments = 0;
+    let totalExpenses = 0;
+
+    for (const item of items) {
+      if (item.type === 'expense') {
+        totalExpenses += item.amount;
+      } else if (investmentSet.has(item.category)) {
+        totalInvestments += item.amount;
+      } else {
+        totalIncomes += item.amount;
+      }
+    }
 
     return {
       totalIncomes,
       totalExpenses,
-      balance: totalIncomes - totalExpenses,
+      totalInvestments,
+      balance: totalIncomes - totalExpenses - totalInvestments,
     };
+  },
+
+  getDailyExpenses(items: ListItem[], days = 7): Array<{ x: string; y: number }> {
+    const DAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const now = new Date();
+
+    return Array.from({ length: days }, (_, i) => {
+      const date = startOfDay(new Date(now.getTime() - (days - 1 - i) * 86400000));
+      const label = i === days - 1 ? 'Hoje' : DAYS_PT[date.getDay()];
+      const total = items
+        .filter((item) => item.type === 'expense')
+        .filter((item) => {
+          const d = parseDMY(getItemDate(item));
+          return d && startOfDay(d).getTime() === date.getTime();
+        })
+        .reduce((sum, item) => sum + item.amount, 0);
+
+      return { x: label, y: total };
+    });
+  },
+
+  computeTop3(expenses: ListItem[]): { category: string; total: number }[] {
+    const map = new Map<string, number>();
+    for (const e of expenses) {
+      map.set(e.category, (map.get(e.category) ?? 0) + e.amount);
+    }
+    return [...map.entries()]
+      .map(([category, total]) => ({ category, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 3);
   },
 
   generateInsights(filtered: ListItem[], all: ListItem[]): string[] {

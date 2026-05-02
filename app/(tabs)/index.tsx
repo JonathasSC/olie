@@ -1,11 +1,14 @@
-import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Redirect, router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { FinanceRepository } from '@/features/finance/services/finance-repository';
+import { FinanceService } from '@/features/finance/services/finance-service';
+import { ProfileRepository } from '@/services/db/profile-repository';
 import { Ionicons } from '@expo/vector-icons';
+import { SpendingBarChart } from '../../components/spending-bar-chart';
 import { IconSymbol } from '../../components/ui/icon-symbol';
-import { CATEGORY_ICONS, CategoryIcon } from '../../features/finance/constants';
-import { ListItem } from '../../features/finance/types';
+import { FinanceSummary } from '../../features/finance/types';
 import { formatCurrency } from '../../features/finance/utils/formatters';
 import { Task } from '../../features/routine/types';
 import { useHome } from '../../hooks/use-home';
@@ -17,20 +20,48 @@ function getGreeting() {
   return 'Boa noite,';
 }
 
+function msUntilNextGreetingChange(): number {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+  const remaining = (60 - m) * 60 * 1000 - s * 1000;
+  if (h < 12)  return (12 - h - 1) * 3600 * 1000 + remaining;
+  if (h < 18)  return (18 - h - 1) * 3600 * 1000 + remaining;
+  return       (24 - h - 1) * 3600 * 1000 + remaining;
+}
+
+const EMPTY_SUMMARY: FinanceSummary = { totalIncomes: 0, totalExpenses: 0, totalInvestments: 0, balance: 0 };
+
 export default function HomeScreen() {
+  const profile = ProfileRepository.get();
+  if (!profile.firstName.trim()) return <Redirect href="/onboarding" />;
+
   const [greeting, setGreeting] = useState(getGreeting());
 
-  const { todayTasks, monthSummary, recentTransactions, streak, refresh } = useHome();
+  const { todayTasks, weeklyExpenses, streak, refresh } = useHome();
+  const [summary, setSummary] = useState<FinanceSummary>(EMPTY_SUMMARY);
+  const [firstName, setFirstName] = useState(() => profile.firstName);
+
+  useFocusEffect(useCallback(() => {
+      const all = FinanceRepository.listAll();
+      setSummary(FinanceService.calculateSummary(all));
+      setFirstName(ProfileRepository.get().firstName);
+  }, []));
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   useEffect(() => {
-    const id = setInterval(() => setGreeting(getGreeting()), 60_000);
-    return () => clearInterval(id);
+    let id: ReturnType<typeof setTimeout>;
+    function schedule() {
+      id = setTimeout(() => { setGreeting(getGreeting()); schedule(); }, msUntilNextGreetingChange());
+    }
+    schedule();
+    return () => clearTimeout(id);
   }, []);
 
-  const visibleTasks = todayTasks.slice(0, 3);
-  const extraTasksCount = Math.max(0, todayTasks.length - 3);
+  const visibleTasks = useMemo(() => todayTasks.slice(0, 3), [todayTasks]);
+  const extraTasksCount = useMemo(() => Math.max(0, todayTasks.length - 3), [todayTasks]);
 
   return (
     <View style={styles.screen}>
@@ -38,11 +69,11 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.greetingText}>{greeting}</Text>
-            <Text style={styles.greetingName}>Jonathas</Text>
+            <Text style={styles.greetingName}>{firstName}</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/settings')}>
               <Ionicons
-                  name={"settings"}
+                  name={"settings-outline"}
                   size={24}
                   style={[{padding: 8}]}
                   color="#000"
@@ -73,9 +104,34 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.sectionCard}>
+          <View style={styles.breakdownRow}>
+              <View style={styles.breakdownItem}>
+                  <Text style={styles.breakdownLabel}>Ganhos</Text>
+                  <Text style={[styles.breakdownValue, styles.breakdownIncome]}>
+                      {formatCurrency(summary.totalIncomes)}
+                  </Text>
+              </View>
+              <View style={styles.breakdownSep} />
+              <View style={styles.breakdownItem}>
+                  <Text style={styles.breakdownLabel}>Gastos</Text>
+                  <Text style={[styles.breakdownValue, styles.breakdownExpense]}>
+                      {formatCurrency(summary.totalExpenses)}
+                  </Text>
+              </View>
+              <View style={styles.breakdownSep} />
+              <View style={styles.breakdownItem}>
+                  <Text style={styles.breakdownLabel}>Investido</Text>
+                  <Text style={[styles.breakdownValue, styles.breakdownInvest]}>
+                      {formatCurrency(summary.totalInvestments)}
+                  </Text>
+              </View>
+          </View>
+        </View>
+
+        <View style={styles.sectionCard}>
           <View style={styles.sectionCardHeader}>
             <Text style={styles.sectionCardTitle}>TAREFAS DE HOJE</Text>
-            <TouchableOpacity style={styles.seeAllButton} onPress={() => router.replace('/routine')}>
+            <TouchableOpacity style={styles.seeAllButton} onPress={() => router.navigate('/routine')}>
               <IconSymbol name="checkmark.circle.fill" size={14} color="#555" />
               <Text style={styles.seeAllText}>Ver tudo</Text>
             </TouchableOpacity>
@@ -95,7 +151,7 @@ export default function HomeScreen() {
                 />
               ))}
               {extraTasksCount > 0 && (
-                <TouchableOpacity onPress={() => router.replace('/routine')} style={styles.extraTasksRow}>
+                <TouchableOpacity onPress={() => router.navigate('/routine')} style={styles.extraTasksRow}>
                   <Text style={styles.extraTasksText}>+{extraTasksCount} mais tarefa{extraTasksCount > 1 ? 's' : ''}</Text>
                 </TouchableOpacity>
               )}
@@ -103,28 +159,15 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View style={[styles.sectionCard, { marginBottom: 0 }]}>
+        <View style={styles.sectionCard}>
           <View style={styles.sectionCardHeader}>
-            <Text style={styles.sectionCardTitle}>ÚLTIMAS MOVIMENTAÇÕES</Text>
-            <TouchableOpacity style={styles.seeAllButton} onPress={() => router.replace('/finance')}>
-              <IconSymbol name="wallet.pass.fill" size={14} color="#555" />
-              <Text style={styles.seeAllText}>Ver tudo</Text>
+            <Text style={styles.sectionCardTitle}>AVANÇO DE GASTOS</Text>
+            <TouchableOpacity style={styles.seeAllButton} onPress={() => router.navigate('/finance')}>
+              <IconSymbol name="chart.bar.fill" size={14} color="#555" />
+              <Text style={styles.seeAllText}>Detalhes</Text>
             </TouchableOpacity>
           </View>
-
-          {recentTransactions.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Nenhuma movimentação registrada</Text>
-            </View>
-          ) : (
-            recentTransactions.map((item, i) => (
-              <MiniTransaction
-                key={`${item.type}-${item.id ?? i}`}
-                item={item}
-                isLast={i === recentTransactions.length - 1}
-              />
-            ))
-          )}
+          <SpendingBarChart data={weeklyExpenses} />
         </View>
 
         <View style={{ height: 148 }} />
@@ -149,29 +192,6 @@ function MiniTask({ task, isLast }: { task: Task; isLast: boolean }) {
         {task.title}
       </Text>
       {isDoing && <IconSymbol name="clock.fill" size={14} color="#ffdd55" />}
-    </View>
-  );
-}
-
-function MiniTransaction({ item, isLast }: { item: ListItem; isLast: boolean }) {
-  const isIncome = item.type === 'income';
-  const color = isIncome ? '#2ada73' : '#ff6e6e';
-  const iconBackground = isIncome ? 'rgba(42,218,115,0.1)' : 'rgba(255,110,110,0.1)';
-  const icon = (CATEGORY_ICONS[item.category] ?? 'dollarsign.circle.fill') as CategoryIcon;
-  const dateLabel = isIncome ? item.date : item.purchase_date;
-
-  return (
-    <View style={[styles.transactionItem, !isLast && styles.transactionItemBorder]}>
-      <View style={[styles.transactionIconContainer, { backgroundColor: iconBackground }]}>
-        <IconSymbol name={icon} size={16} color={color} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.transactionName}>{item.category}</Text>
-        <Text style={styles.transactionMeta}>{item.payment_type} · {dateLabel}</Text>
-      </View>
-      <Text style={[styles.transactionAmount, { color }]}>
-        {isIncome ? '+' : '-'}{formatCurrency(item.amount)}
-      </Text>
     </View>
   );
 }
@@ -251,7 +271,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#dddddd',
     padding: 18,
     marginBottom: 12,
   },
@@ -298,8 +318,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   taskCheckbox: {
-    width: 18,
-    height: 18,
+    width: 8,
+    height: 8,
     borderRadius: 9,
     flexShrink: 0,
     alignItems: 'center',
@@ -330,36 +350,37 @@ const styles = StyleSheet.create({
     color: '#555555',
   },
 
-  transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 7,
-  },
-  transactionItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  transactionIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  transactionName: {
-    fontWeight: '600',
-    fontSize: 13,
-    color: '#000000',
-  },
-  transactionMeta: {
-    fontSize: 10,
-    color: '#8a8a8a',
-    marginTop: 1,
-  },
-  transactionAmount: {
-    fontWeight: '700',
-    fontSize: 13,
-  },
+  breakdownRow: {
+        flexDirection: 'row',
+        borderRadius: 10,
+        marginBottom: 4,
+    },
+    breakdownItem: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        gap: 2,
+    },
+    breakdownSep: {
+        width: 1,
+        backgroundColor: '#f0f0f0',
+    },
+    breakdownLabel: {
+        fontSize: 10,
+        color: '#aaa',
+        fontWeight: '500',
+    },
+    breakdownValue: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    breakdownIncome: {
+        color: '#2ECC71',
+    },
+    breakdownExpense: {
+        color: '#ff6e6e',
+    },
+    breakdownInvest: {
+        color: '#3498DB',
+    },
 });

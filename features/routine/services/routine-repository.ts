@@ -4,15 +4,16 @@ import { StreakRepository } from '@/services/streak';
 import { Note, Task, TaskPriority, TaskRecurrence, TaskStatus } from '../types';
 
 function shouldRecurToday(template: Task, today: string): boolean {
-  if (template.recurrence === 'daily') return true;
-
   const [tDay, tMonth, tYear] = template.date.split('/').map(Number);
   const [dDay, dMonth, dYear] = today.split('/').map(Number);
 
   const templateDate = new Date(tYear, tMonth - 1, tDay);
   const todayDate = new Date(dYear, dMonth - 1, dDay);
 
+  // Never generate instances before the task's start date
   if (todayDate < templateDate) return false;
+
+  if (template.recurrence === 'daily') return true;
   if (template.recurrence === 'weekly') return templateDate.getDay() === todayDate.getDay();
   if (template.recurrence === 'monthly') return templateDate.getDate() === todayDate.getDate();
   return false;
@@ -20,10 +21,10 @@ function shouldRecurToday(template: Task, today: string): boolean {
 
 export const RoutineRepository = {
   listAllTasks(): Task[] {
-    return repository.findAll<Task>('tasks').sort((a, b) => {
-      const order = { pending: 0, doing: 1, completed: 2 };
-      return order[a.status] - order[b.status];
-    });
+    return repository.query<Task>(
+      `SELECT * FROM tasks ORDER BY
+         CASE status WHEN 'pending' THEN 0 WHEN 'doing' THEN 1 ELSE 2 END`
+    );
   },
 
   listNotes(): Note[] {

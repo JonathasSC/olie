@@ -34,20 +34,31 @@ export function useRoutine() {
   );
 
   const addTask = useCallback(async (data: TaskSaveData) => {
-    const id = RoutineRepository.insertTask({
-      title: data.title,
-      status: 'pending',
-      date: data.date,
-      priority: data.priority,
-      recurrence: data.recurrence,
-      reminder_time: data.reminderTime,
-    });
+    let id: number;
+    try {
+      id = RoutineRepository.insertTask({
+        title: data.title,
+        status: 'pending',
+        date: data.date,
+        priority: data.priority,
+        recurrence: data.recurrence,
+        reminder_time: data.reminderTime,
+      });
+    } catch {
+      Alert.alert('Erro', 'Não foi possível criar a tarefa. Tente novamente.');
+      return;
+    }
+
     StreakRepository.recordUsage();
 
     if (data.reminderTime) {
-      const task: Task = { id, title: data.title, status: 'pending', date: data.date, priority: data.priority, recurrence: data.recurrence, reminder_time: data.reminderTime };
-      const notifId = await NotificationService.scheduleTaskReminder(task);
-      if (notifId) RoutineRepository.updateNotificationId(id, notifId);
+      try {
+        const task: Task = { id, title: data.title, status: 'pending', date: data.date, priority: data.priority, recurrence: data.recurrence, reminder_time: data.reminderTime };
+        const notifId = await NotificationService.scheduleTaskReminder(task);
+        if (notifId) RoutineRepository.updateNotificationId(id, notifId);
+      } catch {
+        Alert.alert('Atenção', 'Tarefa criada, mas o lembrete não pôde ser agendado.');
+      }
     }
 
     refresh();
@@ -57,23 +68,31 @@ export function useRoutine() {
     if (!data.id) return;
 
     const existing = allTasks.find(t => t.id === data.id);
-    if (existing?.notification_id) {
-      await NotificationService.cancelReminder(existing.notification_id);
-      RoutineRepository.updateNotificationId(data.id, null);
+    try {
+      if (existing?.notification_id) {
+        await NotificationService.cancelReminder(existing.notification_id);
+        RoutineRepository.updateNotificationId(data.id, null);
+      }
+      RoutineRepository.updateTask(data.id, {
+        title: data.title,
+        date: data.date,
+        priority: data.priority,
+        recurrence: data.recurrence,
+        reminder_time: data.reminderTime,
+      });
+    } catch {
+      Alert.alert('Erro', 'Não foi possível atualizar a tarefa. Tente novamente.');
+      return;
     }
 
-    RoutineRepository.updateTask(data.id, {
-      title: data.title,
-      date: data.date,
-      priority: data.priority,
-      recurrence: data.recurrence,
-      reminder_time: data.reminderTime,
-    });
-
     if (data.reminderTime) {
-      const task: Task = { id: data.id, title: data.title, status: 'pending', date: data.date, priority: data.priority, recurrence: data.recurrence, reminder_time: data.reminderTime };
-      const notifId = await NotificationService.scheduleTaskReminder(task);
-      if (notifId) RoutineRepository.updateNotificationId(data.id, notifId);
+      try {
+        const task: Task = { id: data.id, title: data.title, status: 'pending', date: data.date, priority: data.priority, recurrence: data.recurrence, reminder_time: data.reminderTime };
+        const notifId = await NotificationService.scheduleTaskReminder(task);
+        if (notifId) RoutineRepository.updateNotificationId(data.id, notifId);
+      } catch {
+        Alert.alert('Atenção', 'Tarefa salva, mas o lembrete não pôde ser agendado.');
+      }
     }
 
     refresh();
@@ -124,6 +143,7 @@ export function useRoutine() {
     search,
     setSearch,
     today,
+    refresh,
     addTask,
     editTask,
     cycleStatus,

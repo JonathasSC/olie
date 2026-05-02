@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import ScreenHeader from '../../components/screen-header';
@@ -17,11 +17,14 @@ export default function RoutineScreen() {
     search,
     setSearch,
     today,
+    refresh,
     addTask,
     cycleStatus,
     removeTask,
     removeNote,
   } = useRoutine();
+
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);

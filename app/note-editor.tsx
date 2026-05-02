@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,33 +15,53 @@ import {
 
 import ScreenHeader from '../components/screen-header';
 import { RoutineRepository } from '../features/routine/services/routine-repository';
+import { StreakRepository } from '../services/streak';
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const note = id ? RoutineRepository.listNotes().find((n) => n.id === Number(id)) : undefined;
+  const isEdit = !!note;
 
   const [title, setTitle] = useState(note?.title ?? '');
   const [content, setContent] = useState(note?.content ?? '');
+  const [saving, setSaving] = useState(false);
 
   function handleSave() {
+    if (saving) return;
+    setSaving(true);
     if (note?.id) {
       RoutineRepository.updateNote(note.id, title, content);
     } else {
       RoutineRepository.insertNote(title, content);
+      StreakRepository.recordUsage();
     }
     router.back();
   }
 
-  const saveAction = (
-    <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.85}>
-      <Text style={styles.saveButtonText}>Salvar</Text>
+  function handleDelete() {
+    Alert.alert('Excluir nota', 'Essa ação não pode ser desfeita.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: () => {
+          RoutineRepository.deleteNote(note!.id!);
+          router.back();
+        },
+      },
+    ]);
+  }
+
+  const rightAction = isEdit ? (
+    <TouchableOpacity onPress={handleDelete} activeOpacity={0.7} style={styles.deleteButton}>
+      <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
     </TouchableOpacity>
-  );
+  ) : undefined;
 
   return (
     <View style={styles.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScreenHeader title={note ? 'Editar nota' : 'Nova nota'} rightAction={saveAction} />
+        <ScreenHeader title={isEdit ? 'Editar nota' : 'Nova nota'} rightAction={rightAction} />
 
         <ScrollView
           style={styles.scroll}
@@ -68,6 +90,17 @@ export default function NoteEditorScreen() {
             autoFocus={!note}
           />
         </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            activeOpacity={0.85}
+            disabled={saving}
+          >
+            <Text style={styles.saveText}>{saving ? 'Salvando...' : 'Salvar'}</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -83,7 +116,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 24,
   },
   titleInput: {
     fontSize: 24,
@@ -104,14 +137,28 @@ const styles = StyleSheet.create({
     minHeight: 300,
     paddingVertical: 0,
   },
+  deleteButton: {
+    padding: 4,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    backgroundColor: '#fff',
+  },
   saveButton: {
     backgroundColor: '#000',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
-  saveButtonText: {
-    fontSize: 14,
+  saveButtonDisabled: {
+    backgroundColor: '#555',
+  },
+  saveText: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#fff',
   },

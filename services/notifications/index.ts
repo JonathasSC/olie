@@ -1,19 +1,17 @@
+import type { Task, TaskRecurrence } from '@/features/routine/types';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import type { Task, TaskRecurrence } from '@/features/routine/types';
 
-// Show alerts even when the app is in the foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
 
 const CHANNEL_ID = 'reminders';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;

@@ -83,4 +83,5 @@ export const Shadow = {
 } as const;
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
-export const TAB_HEIGHT = 68;
+// Height of the tab bar itself (excluding safe area bottom inset)
+export const TAB_HEIGHT = 64;

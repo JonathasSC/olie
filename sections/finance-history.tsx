@@ -10,6 +10,8 @@ export default function FinanceHistorySection({ items }: Props) {
     return (
         <View style={styles.section}>
             <Text style={styles.sectionTitle}>Extrato</Text>
+
+            
             {items.length === 0 ? (
                 <View style={styles.empty}>
                     <Text style={styles.emptyText}>Nada para mostrar</Text>

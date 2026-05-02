@@ -32,9 +32,9 @@ export const PRIORITY_LABEL: Record<TaskPriority, string> = {
 };
 
 export const PRIORITY_COLOR: Record<TaskPriority, string> = {
-  low: Colors.t3,
-  normal: Colors.t2,
-  high: Colors.expense,
+  low: '#8a8a8a',
+  normal: '#000',
+  high: '#ff6e6e',
 };
 
 export const RECURRENCE_LABEL: Record<TaskRecurrence, string> = {
@@ -51,13 +51,13 @@ export const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
 };
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: 'pendente',
-  doing: 'em progresso',
-  completed: 'concluído',
+  pending: 'Pendente',
+  doing: 'Andamento',
+  completed: 'Feito',
 };
 
 export const STATUS_COLOR: Record<TaskStatus, string> = {
-  pending:   ROUTINE_COLORS.statusPending,
-  doing:     ROUTINE_COLORS.statusDoing,
-  completed: ROUTINE_COLORS.statusDone,
+  pending:   '#8a8a8a',
+  doing:     '#f1863f',
+  completed: '#2ada73',
 };

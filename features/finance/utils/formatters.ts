@@ -20,12 +20,7 @@ export function getItemDate(item: ListItem): string {
   return item.type === 'income' ? item.date : item.purchase_date;
 }
 
-export function maskDate(v: string): string {
-  const n = v.replace(/\D/g, '').slice(0, 8);
-  if (n.length <= 2) return n;
-  if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
-  return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
-}
+export { maskDate } from '@/utils/masks';
 
 export function maskAmount(v: string): string {
   const n = v.replace(/\D/g, '');

@@ -1,35 +1,36 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
 export default function FinanceButtonsSection() {
     return (
-        <ScrollView 
-            horizontal 
+        <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.actionGrid}
         >
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/finance-editor?type=expense')}>
                 <View style={styles.iconContainer}>
                     <Ionicons style={styles.icon} name='trending-down' size={16}/>
                 </View>
                 <Text style={styles.actionButtonTitle}>Gasto</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/finance-editor?type=income')}>
                 <View style={styles.iconContainer}>
                     <Ionicons style={styles.icon} name='trending-up' size={16} />
                 </View>
                 <Text style={styles.actionButtonTitle}>Ganho</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/finance-editor?type=investment')}>
                 <View style={styles.iconContainer}>
                     <Ionicons style={styles.icon} name='stats-chart' size={16}/>
                 </View>
                 <Text style={styles.actionButtonTitle}>Investimento</Text>
-            </TouchableOpacity>    
+            </TouchableOpacity>
         </ScrollView>
     )
 }

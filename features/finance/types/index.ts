@@ -35,5 +35,6 @@ export type FinanceGroup = {
 export type FinanceSummary = {
   totalIncomes: number;
   totalExpenses: number;
+  totalInvestments: number;
   balance: number;
 };

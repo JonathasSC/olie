@@ -18,6 +18,8 @@ import { PRIORITY_LABEL, RECURRENCE_LABEL } from '../features/routine/constants'
 import { RoutineRepository } from '../features/routine/services/routine-repository';
 import { TaskPriority, TaskRecurrence } from '../features/routine/types';
 import { getTodayDate, maskDate, maskTime } from '../features/routine/utils/formatters';
+import { NotificationService } from '../services/notifications';
+import { StreakRepository } from '../services/streak';
 
 const PRIORITIES: TaskPriority[] = ['low', 'normal', 'high'];
 const RECURRENCES: TaskRecurrence[] = ['none', 'daily', 'weekly', 'monthly'];
@@ -38,34 +40,89 @@ export default function TaskEditorScreen() {
   const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'normal');
   const [recurrence, setRecurrence] = useState<TaskRecurrence>(task?.recurrence ?? 'none');
   const [reminderTime, setReminderTime] = useState(task?.reminder_time ?? '');
+  const [saving, setSaving] = useState(false);
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return;
     if (!title.trim()) return Alert.alert('Atenção', 'Informe o título da tarefa.');
+    setSaving(true);
+
+    const resolvedReminder = reminderTime.length === 5 ? reminderTime : null;
     const data = {
       title: title.trim(),
       date,
       priority,
       recurrence,
-      reminder_time: reminderTime.length === 5 ? reminderTime : null,
+      reminder_time: resolvedReminder,
     };
+
     if (task?.id) {
-      RoutineRepository.updateTask(task.id, data);
+      try {
+        if (task.notification_id) {
+          await NotificationService.cancelReminder(task.notification_id);
+          RoutineRepository.updateNotificationId(task.id, null);
+        }
+        RoutineRepository.updateTask(task.id, data);
+      } catch {
+        setSaving(false);
+        Alert.alert('Erro', 'Não foi possível salvar a tarefa. Tente novamente.');
+        return;
+      }
+      if (resolvedReminder) {
+        try {
+          const notifId = await NotificationService.scheduleTaskReminder({ ...task, ...data });
+          if (notifId) RoutineRepository.updateNotificationId(task.id, notifId);
+        } catch {
+          Alert.alert('Atenção', 'Tarefa salva, mas o lembrete não pôde ser agendado.');
+        }
+      }
     } else {
-      RoutineRepository.insertTask({ ...data, status: 'pending' });
+      let newId: number;
+      try {
+        newId = RoutineRepository.insertTask({ ...data, status: 'pending' });
+        StreakRepository.recordUsage();
+      } catch {
+        setSaving(false);
+        Alert.alert('Erro', 'Não foi possível criar a tarefa. Tente novamente.');
+        return;
+      }
+      if (resolvedReminder) {
+        try {
+          const newTask = { id: newId, ...data, status: 'pending' as const };
+          const notifId = await NotificationService.scheduleTaskReminder(newTask);
+          if (notifId) RoutineRepository.updateNotificationId(newId, notifId);
+        } catch {
+          Alert.alert('Atenção', 'Tarefa criada, mas o lembrete não pôde ser agendado.');
+        }
+      }
     }
     router.back();
   }
 
-  const saveAction = (
-    <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.85}>
-      <Ionicons name="checkmark-sharp" size={22} color="#fff" />
+  function handleDelete() {
+    Alert.alert('Excluir tarefa', 'Essa ação não pode ser desfeita.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: () => {
+          RoutineRepository.deleteTask(task!.id!);
+          router.back();
+        },
+      },
+    ]);
+  }
+
+  const rightAction = task?.id ? (
+    <TouchableOpacity onPress={handleDelete} activeOpacity={0.7} style={styles.deleteButton}>
+      <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
     </TouchableOpacity>
-  );
+  ) : undefined;
 
   return (
     <View style={styles.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScreenHeader title={task ? 'Editar Tarefa' : 'Nova Tarefa'} rightAction={saveAction} />
+        <ScreenHeader title={task ? 'Editar Tarefa' : 'Nova Tarefa'} rightAction={rightAction} />
 
         <ScrollView
           style={styles.scroll}
@@ -146,6 +203,17 @@ export default function TaskEditorScreen() {
             maxLength={5}
           />
         </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            activeOpacity={0.85}
+            disabled={saving}
+          >
+            <Text style={styles.saveText}>{saving ? 'Salvando...' : 'Salvar'}</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -161,7 +229,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 24,
   },
   fieldLabel: {
     fontSize: 11,
@@ -214,12 +282,29 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
+  deleteButton: {
+    padding: 4,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    backgroundColor: '#fff',
+  },
   saveButton: {
     backgroundColor: '#000',
-    borderRadius: 999,
-    width: 36,
-    height: 36,
+    borderRadius: 8,
+    paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#555',
+  },
+  saveText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

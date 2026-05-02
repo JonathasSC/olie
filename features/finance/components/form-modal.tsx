@@ -1,3 +1,5 @@
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Colors, Fonts, Radius } from '@/constants/design';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,16 +14,13 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Fonts, Radius, Shadow } from '@/constants/design';
 import {
-  FINANCE_COLORS,
-  INCOME_CATEGORIES,
-  INCOME_TYPES,
   EXPENSE_CATEGORIES,
   EXPENSE_TYPES,
+  INCOME_CATEGORIES,
+  INCOME_TYPES,
 } from '../constants';
-import { getTodayDate, maskDate, maskAmount, parseAmount } from '../utils/formatters';
+import { getTodayDate, maskAmount, maskDate, parseAmount } from '../utils/formatters';
 
 type FormType = 'income' | 'expense' | null;
 
